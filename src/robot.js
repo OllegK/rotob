@@ -68,8 +68,9 @@ var main = async function () {
         continue;
       }
       var sellAmount = calcIndicators.getSellAmount(myBaseBalance, symbolInfo);
-      await telegramBot.sendMessage(`I am going to place sell order for ${symbol}, sell amount - ${sellAmount}`);
+      logger.info ('I am going to place sell order',  {symbol : symbol, sellAmount : sellAmount});
       if (sellAmount > 0) {
+        await telegramBot.sendMessage(`I am going to place sell order for ${symbol}, sell amount - ${sellAmount}`);
         await privateAPI.placeMarketOrder(timeout, symbol, 'SELL', sellAmount, isTestSellOrder);
         mySymbols = null;
       }
