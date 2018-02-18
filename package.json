@@ -1,0 +1,24 @@
+{
+  "name": "robot",
+  "version": "1.0.0",
+  "description": "",
+  "main": "test.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node ./src/robot.js",
+    "start_dev": "npm run lint && node ./src/robot.js",
+    "start_test": "node ./src/test_privAPI.js",
+    "lint": "eslint --ignore-path .gitignore ./src --ext .js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^0.17.1",
+    "dotenv": "^5.0.0",
+    "winston": "^3.0.0-rc1"
+  },
+  "devDependencies": {
+    "eslint": "^4.17.0",
+    "eslint-config-strongloop": "^2.1.0"
+  }
+}
