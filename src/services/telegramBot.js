@@ -1,6 +1,6 @@
 'use strict';
 
-require('dotenv').config();
+//require('dotenv').config();
 const axios = require('axios');
 
 module.exports = new class TelegramBot {
