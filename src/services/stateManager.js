@@ -47,6 +47,7 @@ class StateManager {
       delete this.state[symbol].signal;
       delete this.state[symbol].timestamp;
       delete this.state[symbol].green;
+      this.writeState();
     } else if (isSellSignal && isBuySignal) {
       throw new Error('both signal are true');
     } else if (('BUY' === storedSignal) && isBuySignal) {
@@ -57,10 +58,12 @@ class StateManager {
       this.state[symbol].signal = 'BUY';
       this.state[symbol].timestamp = timestamp;
       this.state[symbol].green = avgPrice;
+      this.writeState();
     } else if (isSellSignal) {
       this.state[symbol].signal = 'SELL';
       this.state[symbol].timestamp = timestamp;
       this.state[symbol].green = avgPrice;
+      this.writeState();
     } else {
       throw new Error('should not be here');
     }
@@ -86,6 +89,7 @@ class StateManager {
     this.checkSymbol(symbol);
     this.state[symbol]['ORDER_' + side] = timestamp;
     this.state[symbol]['ORDER_' + side + '_QTY'] = quantity;
+    this.writeState();
   }
 
 }

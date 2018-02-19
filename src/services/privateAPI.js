@@ -1,6 +1,5 @@
 'use strict';
 
-// require('dotenv').config();
 const API_KEY = process.env.API_KEY;
 const API_SECRET_KEY = process.env.API_SECRET_KEY;
 

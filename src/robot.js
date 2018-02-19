@@ -1,5 +1,8 @@
 'use strict';
 
+if (process.env.NODE_ENV !== 'production') {
+  require('dotenv').config();
+}
 const logger = require('./services/logger').init();
 const telegramBot = require('./services/telegramBot');
 const CalcIndicators = require('./services/calcIndicators');
@@ -95,7 +98,7 @@ var main = async function () {
         logger.info('no buy, buy amount is 0',
           { quoteAsset: symbolInfo.quoteAsset, myQuoteBalance: myQuoteBalance });
         await telegramBot.sendMessage(
-          `No buy, buy amount is 0; your ${symbolInfo.quoteAsset} balance is ${myQuoteBalance}`);
+          `No buy ${symbol}, buy amount is ${buyAmount}; your ${symbolInfo.quoteAsset} balance is ${myQuoteBalance}`);
       }
     }
   };
