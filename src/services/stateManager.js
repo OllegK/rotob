@@ -92,6 +92,10 @@ class StateManager {
     this.writeState();
   }
 
+  getState(){
+    return this.state;
+  }
+
 }
 
 module.exports = new StateManager();

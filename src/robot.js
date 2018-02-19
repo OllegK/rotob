@@ -11,7 +11,7 @@ const publicAPI = require('./services/publicAPI');
 const privateAPI = require('./services/privateAPI');
 
 // --------------------------------------------------------------------------------------
-let interval = 60000; // value in ms between iterations, sleep time
+let interval = 30000; // value in ms between iterations, sleep time
 let candleInterval1 = '1h'; // candle size for first buy check
 let candleInterval2 = '4h'; // candle size for second buy check
 let calcValues = 3; // how many indications should be calculated
@@ -145,7 +145,7 @@ var start = async function () {
     await runToInitState();
     stateManager.writeState();
   }
-  logger.info('initState is completed');
+  logger.info('initState is completed', {state : stateManager.getState()})
 
   let iterations = 0;
   runMain(iterations);
