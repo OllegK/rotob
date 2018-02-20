@@ -23,12 +23,10 @@ class StateManager {
   }
 
   writeState() {
-
-    if (this.state) {
-      this.state.timestamp = new Date().getTime();
-    } else {
-      console.log('this.state is null');
+    if (!this.state) {
+      this.state = {};
     }
+    this.state.timestamp = new Date().getTime();
 
     fs.writeFileSync(this.filePath, JSON.stringify(this.state), 'utf8');
   }

@@ -1,7 +1,8 @@
 'use strict';
 
-//require('dotenv').config();
 const axios = require('axios');
+const logger = require('./logger').init();
+
 
 module.exports = new class TelegramBot {
 
@@ -10,14 +11,22 @@ module.exports = new class TelegramBot {
     this.chatId = process.env.CHAT_ID;
   }
 
-  sendMessage(msg) {
-    return axios.get(`https://api.telegram.org/bot${this.bot}/sendMessage`, {
-      params: {
-        chat_id: this.chatId,
-        parse_mode: 'html',
-        text: msg,
-      },
-    });
+  async sendMessage(msg) {
+    try {
+      await axios.get(`https://api.telegram.org/bot${this.bot}/sendMessage`, {
+        params: {
+          chat_id: this.chatId,
+          parse_mode: 'html',
+          text: msg,
+        },
+      });
+    } catch (err) {
+      console.log(err);
+      logger.error('Error sending telegram message', err);
+      if (err.response) {
+        logger.error(err.response.data);
+      }
+    }
   }
 
   // https://api.telegram.org/bot437516306:AAEusnPwYEWnBWPmHyhiSN3tuOcuThG_4fQ/

@@ -144,12 +144,11 @@ class CalcIndicators {
     var arr = minAllowedAmount.split('.');
     arr = arr[1].split('1');
     var i = arr[0].length;
-    //var j = arr[1].length();
 
     var f = Math.pow(10, i + 1);
     return Math.floor(balance * f) / f;
 
-    //return Number(balance).toFixed(i + 1);
+    // return Number(balance).toFixed(i + 1);
   }
 
 }

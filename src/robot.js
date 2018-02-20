@@ -11,12 +11,12 @@ const publicAPI = require('./services/publicAPI');
 const privateAPI = require('./services/privateAPI');
 
 // --------------------------------------------------------------------------------------
-let interval = 30000; // value in ms between iterations, sleep time
+let interval = 3000; // value in ms between iterations, sleep time
 let candleInterval1 = '1h'; // candle size for first buy check
 let candleInterval2 = '4h'; // candle size for second buy check
 let calcValues = 3; // how many indications should be calculated
 let isTestSellOrder = false; // submit an order using test endpoint
-let isTestBuyOrder = true; // submit an order using test endpoint
+let isTestBuyOrder = false; // submit an order using test endpoint
 let buyCoefficient = 1.0002; // green should be higher by 0.02%
 let sellCoefficient = 1.0002; // red should be higher by 0.02%
 let hodlBought = 600000; // how many ms hodl since buying the bought coin and ignore the sell signal
@@ -71,7 +71,7 @@ var main = async function () {
         continue;
       }
       var sellAmount = calcIndicators.getSellAmount(myBaseBalance, symbolInfo);
-      logger.info ('I am going to place sell order',  {symbol : symbol, sellAmount : sellAmount});
+      logger.info('I am going to place sell order', { symbol: symbol, sellAmount: sellAmount });
       if (sellAmount > 0) {
         await telegramBot.sendMessage(`I am going to place sell order for ${symbol}, sell amount - ${sellAmount}`);
         await privateAPI.placeMarketOrder(timeout, symbol, 'SELL', sellAmount, isTestSellOrder);
@@ -86,7 +86,7 @@ var main = async function () {
       }
       var [spentAmount, buyAmount] = calcIndicators.getBuyAmount(myQuoteBalance, limitToSpent, symbolInfo, nGreen);
       if (buyAmount > 0) {
-        logger.info('caclulated buyAmount',
+        logger.info('calculated buyAmount',
           {
             symbol: symbol, myBalance: myQuoteBalance, limitToSpent: limitToSpent,
             buyAmount: buyAmount, spentAmount: spentAmount,
@@ -145,7 +145,7 @@ var start = async function () {
     await runToInitState();
     stateManager.writeState();
   }
-  logger.info('initState is completed', {state : stateManager.getState()})
+  logger.info('initState is completed', { state: stateManager.getState() });
 
   let iterations = 0;
   runMain(iterations);
@@ -153,11 +153,18 @@ var start = async function () {
 
 start();
 
-// send a message on ctrl+c
-process.on('SIGINT', function () {
+// on ctrl+c
+rocess.on('SIGINT', async function () {
+  await telegramBot.sendMessage('Oh no, my master is killing me...')
   logger.info('Exitting ........................');
-  telegramBot.sendMessage('Oh no, my master is killing me...').then(() => {
-    stateManager.writeState();
-    process.exit();
-  });
+  stateManager.writeState();
+  process.exit();
+});
+
+// on kill pid
+process.on('SIGTERM', async function () {
+  await telegramBot.sendMessage('SIGTERM .......................')
+  logger.info('Exitting SIGTERM ........................');
+  stateManager.writeState();
+  process.exit();
 });

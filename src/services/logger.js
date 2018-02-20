@@ -1,28 +1,51 @@
 'use strict';
 
-const winston = require('winston');
-// winston.level = 'debug';
-const MESSAGE = Symbol.for('message');
+const { createLogger, format, transports } = require('winston');
+const { combine, timestamp, printf } = format;
 
-var init = function() {
-  const jsonFormatter = (logEntry) => {
-    const base = { timestamp: new Date() };
-    const json = Object.assign(base, logEntry);
-    logEntry[MESSAGE] = JSON.stringify(json);
-    return logEntry;
-  };
+var init = function () {
 
-  const logger = winston.createLogger({
-    level: 'info',
-    format: winston.format(jsonFormatter)(),
+  const logger = createLogger({
+    format: combine(
+      format.timestamp(),
+      format.align(),
+      format.printf((info) => {
+        const {
+          timestamp, level, message, ...args
+        } = info;
+
+        const ts = timestamp.slice(0, 19).replace('T', ' ');
+
+        const censor = (censor) => {
+          var i = 0;
+
+          return function (key, value) {
+            if (i !== 0 && typeof (censor) === 'object' && typeof (value) == 'object' && censor == value) {
+              return '[Circular]';
+            }
+
+            if (i >= 299) { // seems to be a hardcoded maximum
+              return '[Unknown]';
+            }
+
+            ++i; // so we know we aren't using the original object anymore
+
+            return value;
+          };
+        };
+
+        return `${ts} [${level}]: ${message} ${Object.keys(args).length ? JSON.stringify(args, censor(args), 2) : ''}`;
+
+      }),
+    ),
     transports: [
-      new winston.transports.File({ filename: 'error.log', level: 'error' }),
-      new winston.transports.File({ filename: 'output.log' }),
+      new transports.File({ filename: 'output.log' }),
+      new transports.File({ filename: 'error.log', level: 'error' }),
     ],
   });
 
   if (process.env.NODE_ENV !== 'production') {
-    logger.add(new winston.transports.Console({
+    logger.add(new transports.Console({
     }));
   };
 
@@ -30,6 +53,4 @@ var init = function() {
 
 };
 
-module.exports = {
-  init: init,
-};
+module.exports.init = init;

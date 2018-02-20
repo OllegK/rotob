@@ -1,14 +1,27 @@
 {
   "extends": "strongloop",
   "parserOptions": {
-    "ecmaVersion": 2017
+    "ecmaVersion": 2017,
+    "ecmaFeatures": {
+      "experimentalObjectRestSpread": true
+    }
   },
   "env": {
     "es6": true
   },
   "rules": {
-    "max-len": [2, 120, 8],
-    "space-before-function-paren": [0, "always"],
-    "yoda": [0, "always"]
+    "max-len": [
+      2,
+      120,
+      8
+    ],
+    "space-before-function-paren": [
+      0,
+      "always"
+    ],
+    "yoda": [
+      0,
+      "always"
+    ]
   }
 }
