@@ -1,13 +1,8 @@
 'use strict';
 
-// require('dotenv').config();
-// const API_KEY = process.env.API_KEY;
-// const API_SECRET_KEY = process.env.API_SECRET_KEY;
+require('dotenv').config();
 
 const privateAPI = require('./services/privateAPI');
-
-const timeout = ms => new Promise(res => setTimeout(res, ms));
-
 
 var getBalance = async function (coin) {
   var ret = await privateAPI.getAccount();
@@ -21,15 +16,11 @@ var getBalance = async function (coin) {
   }
 };
 
-var placeMarketOrder = async function (timeout, symbol, side, quantity, isTest) {
-  console.log('inside place market order');
-  var ret = await privateAPI.placeMarketOrder(timeout, symbol, side, quantity, isTest);
-  return ret;
-};
-
 var run = async function () {
-  await getBalance('BTC');
-  var response = await placeMarketOrder(timeout, 'ETHBTC', 'BUY', 0.001, true);
+  //await getBalance('BTC');
+  //await privateAPI.placeMarketBuyOrder('ETHBTC', 0.001, true, false, 0);
+  let response = await privateAPI.placeStopLossOrder('WAVESBTC', 0.14, false, 0.0031000);
+  //let response = await privateAPI.cancelOrder('ETHBTC', orderId);
   console.log(response);
 };
 

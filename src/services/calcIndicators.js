@@ -4,7 +4,6 @@ const logger = require('./logger').init();
 const publicAPI = require('./publicAPI');
 const stateManager = require('./stateManager');
 
-
 class CalcIndicators {
 
   constructor(buyCoefficient, sellCoefficient, candleInterval1, candleInterval2, calcValues) {
@@ -15,7 +14,7 @@ class CalcIndicators {
     this.candleInterval1 = candleInterval1;
     this.candleInterval2 = candleInterval2;
     this.calcValues = calcValues;
-    this.candlesAmount = this.calcValues * this.red; // actually should be red + calc
+    this.candlesAmount = this.calcValues + this.red - 1; // this.calcValues * this.red;
   }
 
   async calculateSignals(symbol, initRun) {
@@ -23,6 +22,7 @@ class CalcIndicators {
     // get the candles
     var candles = await publicAPI.getCandles(symbol, this.candleInterval1, this.candlesAmount);
     logger.info('call to get candles completed', { length: candles.length, symbol: symbol });
+    logger.info('Candles', { candles: candles });
 
     // calculate the indicators
     var arrRed = [];
@@ -49,6 +49,11 @@ class CalcIndicators {
     if (this.isFirstBuyCheck(arrRed, arrGreen)) {
       logger.info('first buy indicator IS GOT', { symbol: symbol, red: arrRed, green: arrGreen });
       // await telegramBot.sendMessage(`I got first buy indicator for ${symbol}`);
+      if (this.candleInterval1 === this.candleInterval2) { // skipping the second check
+        logger.info('Checking the second buy indicator is skipped as candle intervals are the same',
+          { symbol: symbol, candleInterval: this.candleInterval1 });
+        return true;
+      }
       var candles = await publicAPI.getCandles(symbol, this.candleInterval2, this.red);
       var nRed = this.calculateIndicator(candles, 1, this.red);
       var nGreen = this.calculateIndicator(candles, 1, this.green);
@@ -110,7 +115,7 @@ class CalcIndicators {
   getBalance(mySymbols, asset) {
     for (var i = 0; i < mySymbols.length; i++) {
       if (asset === mySymbols[i].asset) {
-        return mySymbols[i].free; // for now mySymbols[i].locked is not taken into account
+        return [Number(mySymbols[i].free), Number(mySymbols[i].locked)];
       }
     }
     throw new Error('Not found info about asset....' + asset);
@@ -121,8 +126,7 @@ class CalcIndicators {
     var lotsize = symbolInfo.filters.filter(elem => 'LOT_SIZE' === elem.filterType);
     var minAllowedAmount = lotsize[0].minQty;
     if (minAllowedAmount > 0) {
-      var spent = Math.min(balance, limitToSpent);
-      // spent = Math.max(spent, minAllowedAmount);
+      var spent = Math.min(balance * 0.95, limitToSpent); // 0.95 is multiplied trying to avoid -2010
       var buy = (spent / avgPrice);
 
       buy = (Math.floor(buy / minAllowedAmount) * minAllowedAmount).toFixed(8);

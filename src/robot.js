@@ -11,17 +11,19 @@ const publicAPI = require('./services/publicAPI');
 const privateAPI = require('./services/privateAPI');
 
 // --------------------------------------------------------------------------------------
-let interval = 3000; // value in ms between iterations, sleep time
+let interval = 1000; // value in ms between iterations, sleep time
 let candleInterval1 = '1h'; // candle size for first buy check
-let candleInterval2 = '4h'; // candle size for second buy check
-let calcValues = 3; // how many indications should be calculated
-let isTestSellOrder = false; // submit an order using test endpoint
-let isTestBuyOrder = false; // submit an order using test endpoint
+let candleInterval2 = '1h'; // candle size for second buy check
+let calcValues = 2; // how many indications should be calculated
+let isTestSellOrder = true; // submit an order using test endpoint
+let isTestBuyOrder = true; // submit an order using test endpoint
 let buyCoefficient = 1.0002; // green should be higher by 0.02%
 let sellCoefficient = 1.0002; // red should be higher by 0.02%
 let hodlBought = 600000; // how many ms hodl since buying the bought coin and ignore the sell signal
 let buySignalIsValid = 10000; // how many ms the buy signal is valid; could be set to 0 to prevent any buy
 let stateValidity = 300000; // how many ms the stored state is valid, if not valid the state will be reset ({})
+let placeStopLoss = true; // please stop-loss order when bought
+let acceptedLoss = 2; // percentage of allowable less when placing the stop-loss order
 // --------------------------------------------------------------------------------------
 
 let mySymbols = null;
@@ -58,26 +60,52 @@ var main = async function () {
     var [isSell, isBuy, nGreen] = await calcIndicators.calculateSignals(symbol, false);
 
     // check the base asset balance to find if robot needs to sell
-    var myQuoteBalance = calcIndicators.getBalance(mySymbols, symbolInfo.quoteAsset);
-    var myBaseBalance = calcIndicators.getBalance(mySymbols, symbolInfo.baseAsset);
+    let [myQuoteBalance] = calcIndicators.getBalance(mySymbols, symbolInfo.quoteAsset);
+    let [myBaseBalance, myBaseBalanceLocked] = calcIndicators.getBalance(mySymbols, symbolInfo.baseAsset);
     logger.info('................',
-      { symbol: symbol, myBaseBalance: myBaseBalance, myQuoteBalance: myQuoteBalance, isSell: isSell, isBuy: isBuy });
+      {
+        symbol: symbol, myBaseBalance: myBaseBalance, myBaseBalanceLocked: myBaseBalanceLocked,
+        myQuoteBalance: myQuoteBalance, isSell: isSell, isBuy: isBuy
+      });
     var timestamp = new Date().getTime();
-    if (myBaseBalance > 0 && isSell) { // has something to sell
+    if (((myBaseBalance > 0) || (myBaseBalanceLocked > 0)) && isSell) { // has something to sell
       logger.info('Selling ................', { symbol: symbol });
       if ((timestamp - stateManager.getBuyTime(symbol)) < hodlBought) {
         logger.info('SHOULD BE HODLED', { symbol: symbol });
         await telegramBot.sendMessage(`I am going to HODL ${symbol} even if I got the sell indicator`);
         continue;
       }
+      if (symbols[i].isHodl) {
+        let buyPrice = stateManager.getBuyPrice(symbol);
+        logger.info('Buy price is gotten', { symbol: symbol, buyPrice: buyPrice });
+        if (0 === buyPrice) {
+          logger.info('No sell, this is hodl coin, and buy price is not found',
+            { symbol: symbol, green: nGreen });
+          await telegramBot.sendMessage(
+            `No sell, this is hodl coin - ${symbol}, and buy price is not found, ${nGreen}`);
+          continue;
+        }
+        if (buyPrice > nGreen) {
+          logger.info('No sell, this is hodl coin, and buy price was higher',
+            { symbol: symbol, buyPrice: buyPrice, green: nGreen });
+          await telegramBot.sendMessage(
+            `No sell, this is hodl coin - ${symbol}, and buy price ${buyPrice} is higher ${nGreen}`);
+          continue;
+        }
+      }
+      // if we are here, we decided to sell
+      if (myBaseBalanceLocked > 0) {
+        // todo : we need to cancel sell order
+        myBaseBalance += myBaseBalanceLocked;
+      }
       var sellAmount = calcIndicators.getSellAmount(myBaseBalance, symbolInfo);
       logger.info('I am going to place sell order', { symbol: symbol, sellAmount: sellAmount });
       if (sellAmount > 0) {
         await telegramBot.sendMessage(`I am going to place sell order for ${symbol}, sell amount - ${sellAmount}`);
-        await privateAPI.placeMarketOrder(timeout, symbol, 'SELL', sellAmount, isTestSellOrder);
+        await privateAPI.placeMarketSellOrder(symbol, sellAmount, isTestSellOrder);
         mySymbols = null;
       }
-    } else if (myBaseBalance == 0 && myQuoteBalance > 0 && isBuy) { // if not bought yet
+    } else if (myBaseBalance === 0 && myQuoteBalance > 0 && isBuy) { // if not bought yet
       logger.info('Buying ................', { symbol: symbol });
       if ((timestamp - stateManager.getBuySignalTime(symbol)) >= buySignalIsValid) {
         logger.info('BUY SIGNAL IS NOT FRESH ENOUGH', { symbol: symbol });
@@ -91,8 +119,8 @@ var main = async function () {
             symbol: symbol, myBalance: myQuoteBalance, limitToSpent: limitToSpent,
             buyAmount: buyAmount, spentAmount: spentAmount,
           });
-        await telegramBot.sendMessage(`${symbol} calculated buy amount ${buyAmount}, spent ${spentAmount}`);
-        await privateAPI.placeMarketOrder(timeout, symbol, 'BUY', buyAmount, isTestBuyOrder);
+        await telegramBot.sendMessage(`${symbol}: buy amount ${buyAmount}, spent ${spentAmount}, green ${nGreen}`);
+        await privateAPI.placeMarketBuyOrder(symbol, buyAmount, isTestBuyOrder, placeStopLoss, acceptedLoss);
         mySymbols = null;
       } else {
         logger.info('no buy, buy amount is 0',
@@ -154,8 +182,8 @@ var start = async function () {
 start();
 
 // on ctrl+c
-rocess.on('SIGINT', async function () {
-  await telegramBot.sendMessage('Oh no, my master is killing me...')
+process.on('SIGINT', async function () {
+  await telegramBot.sendMessage('Oh no, my master is killing me...');
   logger.info('Exitting ........................');
   stateManager.writeState();
   process.exit();
@@ -163,7 +191,7 @@ rocess.on('SIGINT', async function () {
 
 // on kill pid
 process.on('SIGTERM', async function () {
-  await telegramBot.sendMessage('SIGTERM .......................')
+  await telegramBot.sendMessage('SIGTERM .......................');
   logger.info('Exitting SIGTERM ........................');
   stateManager.writeState();
   process.exit();

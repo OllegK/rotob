@@ -17,9 +17,18 @@ class StateManager {
       isValid = (timestamp - this.state.timestamp) < stateValidity;
     }
     if (!isValid) {
-      this.state = {};
+      this.invalidateState();
     }
     return isValid;
+  }
+
+  invalidateState() {
+    for (var key in this.state) {
+      delete this.state[key].signal;
+      delete this.state[key].timestamp;
+      delete this.state[key].green;
+    }
+    this.writeState();
   }
 
   writeState() {
@@ -83,10 +92,24 @@ class StateManager {
     return 0;
   }
 
-  storeOrder(symbol, side, timestamp, quantity) {
+  getBuyPrice(symbol) {
+    if (this.state[symbol]) {
+      return this.state[symbol].ORDER_BUY_AVG || 0;
+    }
+    return 0;
+  }
+
+  storeOrder(symbol, side, timestamp, quantity, orderId, avg) {
+    if (!this.state) {
+      return; // for testing api
+    }
     this.checkSymbol(symbol);
     this.state[symbol]['ORDER_' + side] = timestamp;
     this.state[symbol]['ORDER_' + side + '_QTY'] = quantity;
+    this.state[symbol]['ORDER_' + side + '_ID'] = orderId;
+    if (avg) { // only for buy
+      this.state[symbol]['ORDER_' + side + '_AVG'] = avg;
+    }
     this.writeState();
   }
 

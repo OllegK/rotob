@@ -21,7 +21,7 @@ var returnSymbols = function () {
     { symbol: 'SNTBTC', active: 'Y', limitToSpent: 0.0001 },
     { symbol: 'STORJBTC', active: 'Y', limitToSpent: 0.0002 }, // ?*
     { symbol: 'STRATBTC', active: 'Y', limitToSpent: 0.0001 },
-    { symbol: 'WAVESBTC', active: 'Y', limitToSpent: 0.0001 },
+    { symbol: 'WAVESBTC', active: 'Y', limitToSpent: 0.0001, isHodl: true },
     { symbol: 'WTCBTC', active: 'Y', limitToSpent: 0.0001 },
     { symbol: 'XLMBTC', active: 'Y', limitToSpent: 0.0001 },
     { symbol: 'XMRBTC', active: 'Y', limitToSpent: 0.0001 },
@@ -72,7 +72,7 @@ var returnSymbols = function () {
     { symbol: 'VENBTC', active: 'Y', limitToSpent: 0.0005 }, // ?
     { symbol: 'XZCBTC', active: 'Y', limitToSpent: 0.0001 },
     { symbol: 'YOYOBTC', active: 'Y', limitToSpent: 0.0001 },
-    { symbol: 'BTCUSDT', active: 'N', limitToSpent: 1 },
+    { symbol: 'BTCUSDT', active: 'N', limitToSpent: 1, isHodl: true },
     { symbol: 'ETHUSDT', active: 'Y', limitToSpent: 1 },
     { symbol: 'BCCUSDT', active: 'Y', limitToSpent: 1 },
     { symbol: 'NEOUSDT', active: 'Y', limitToSpent: 1 },

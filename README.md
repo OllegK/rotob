@@ -96,3 +96,6 @@ Sometime trying to create the order, binance responds with error "Timestamp for 
 3) (можно позже прикрутить) чтобы если он на одной паре делает покупки продажи часто, например каждый час, если мы на часовике, то покупки по этой паре на какое-то время игнорирует
 4) ?? Notify me flag on the pair
 5) ?? Sell indicator not by the values, but by crossing the values as it is done for buy signal (??)
+6) {code: -2010, msg: "Account has insufficient balance for request action"} - now it is just applied 0.95 to balance
+7) Take into the account the exchange fee calculating the price of stop loss
+8) crossing could happen when both indicators are in down trend (rarely)

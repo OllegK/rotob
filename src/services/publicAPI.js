@@ -26,7 +26,8 @@ class PublicAPI {
         logger.error('Error calling getCandles', err.response ? err.response.data : err);
         if (i === intervals.length - 1) {
           await telegramBot.sendMessage(
-            `I am off because I got an error getting the candles - ${err.response ? JSON.stringify(err.response.data) : 'no response'}`);
+            `I am off because I got an error getting the candles -
+              ${err.response ? JSON.stringify(err.response.data) : 'no response'}`);
           process.exit();
         } else {
           logger.error(`Waiting ${intervals[i]}ms before retry, attempt ${i + 1}`);
@@ -47,7 +48,8 @@ class PublicAPI {
         logger.error('Error calling getExchangeInfo', err.response ? err.response.data : err);
         if (i === intervals.length - 1) {
           await telegramBot.sendMessage(
-            `I am off because I got an error getting the exchange info - ${err.response ? JSON.stringify(err.response.data) : 'no response'}`);
+            `I am off because I got an error getting the exchange info -
+              ${err.response ? JSON.stringify(err.response.data) : 'no response'}`);
           process.exit();
         } else {
           logger.error(`Waiting ${intervals[i]}ms before retry, attempt ${i + 1}`);
