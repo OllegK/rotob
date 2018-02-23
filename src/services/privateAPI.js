@@ -69,7 +69,7 @@ class PrivateAPI {
           symbol: symbol,
           orderId: orderId,
           recvWindow: this.recvWindow,
-          timestamp: timestamp
+          timestamp: timestamp,
         };
         let query = Object.keys(params).reduce(function (a, k) {
           a.push(k + '=' + encodeURIComponent(params[k]));
@@ -100,7 +100,7 @@ class PrivateAPI {
     }
   }
 
-  async placeOrder(side, type, symbol, quantity, isTest, stopPrice) {
+  async placeOrder(side, type, symbol, quantity, isTest, stopPrice, limitStopPrice) {
 
     logger.info('place order arguments', arguments);
 
@@ -124,7 +124,7 @@ class PrivateAPI {
         };
         if ('STOP_LOSS_LIMIT' === type) {
           params.stopPrice = stopPrice;
-          params.price = (0.95 * stopPrice).toFixed(7);
+          params.price = limitStopPrice;
           params.timeInForce = 'GTC';
         }
         let query = Object.keys(params).reduce(function (a, k) {
@@ -180,8 +180,8 @@ class PrivateAPI {
     return response;
   }
 
-  async placeMarketBuyOrder(symbol, quantity, isTest, placeStopLoss, acceptedLoss) {
-    let response = await this.placeOrder('BUY', 'MARKET', ...arguments);
+  async placeMarketBuyOrder(symbol, quantity, isTest, placeStopLoss, acceptedLoss, limitAcceptedLoss, symbolInfo) {
+    let response = await this.placeOrder('BUY', 'MARKET', symbol, quantity, isTest);
     logger.info('The response from placing buy order', {response: response.data});
 
     if (isTest) { // secure the process flow
@@ -205,8 +205,9 @@ class PrivateAPI {
       `I sucessfully placed market BUY order for ${symbol}, avg ${avg}, status ${status}`);
     if (placeStopLoss) {
       let stopPrice = avg * (100 - acceptedLoss) / 100;
+      let limitStopPrice = stopPrice * (100 - limitAcceptedLoss) / 100;
       logger.info('The stop loss pricess is calculated', {stopPrice: stopPrice});
-      let stopResponse = await this.placeStopLossOrder(symbol, quantity, isTest, stopPrice);
+      let stopResponse = await this.placeStopLossOrder(symbol, quantity, isTest, stopPrice, limitStopPrice);
       logger.info('The response from placing stop loss order', {response: stopResponse.data});
       await telegramBot.sendMessage(
         `I sucessfully placed STOP LOSS order for ${symbol}, avg ${avg}, stop price ${stopPrice}`);

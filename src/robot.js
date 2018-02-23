@@ -24,6 +24,7 @@ let buySignalIsValid = 10000; // how many ms the buy signal is valid; could be s
 let stateValidity = 300000; // how many ms the stored state is valid, if not valid the state will be reset ({})
 let placeStopLoss = true; // please stop-loss order when bought
 let acceptedLoss = 2; // percentage of allowable less when placing the stop-loss order
+let limitAcceptedLoss = 5; // calculated from acceptedLoss
 // --------------------------------------------------------------------------------------
 
 let mySymbols = null;
@@ -65,7 +66,7 @@ var main = async function () {
     logger.info('................',
       {
         symbol: symbol, myBaseBalance: myBaseBalance, myBaseBalanceLocked: myBaseBalanceLocked,
-        myQuoteBalance: myQuoteBalance, isSell: isSell, isBuy: isBuy
+        myQuoteBalance: myQuoteBalance, isSell: isSell, isBuy: isBuy,
       });
     var timestamp = new Date().getTime();
     if (((myBaseBalance > 0) || (myBaseBalanceLocked > 0)) && isSell) { // has something to sell
@@ -120,7 +121,9 @@ var main = async function () {
             buyAmount: buyAmount, spentAmount: spentAmount,
           });
         await telegramBot.sendMessage(`${symbol}: buy amount ${buyAmount}, spent ${spentAmount}, green ${nGreen}`);
-        await privateAPI.placeMarketBuyOrder(symbol, buyAmount, isTestBuyOrder, placeStopLoss, acceptedLoss);
+        await privateAPI.placeMarketBuyOrder(
+          symbol, buyAmount, isTestBuyOrder, placeStopLoss, acceptedLoss, limitAcceptedLoss, symbolInfo
+        );
         mySymbols = null;
       } else {
         logger.info('no buy, buy amount is 0',
