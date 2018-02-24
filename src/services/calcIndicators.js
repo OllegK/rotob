@@ -1,12 +1,10 @@
 'use strict';
 
-const logger = require('./logger').init();
-const publicAPI = require('./publicAPI');
-const stateManager = require('./stateManager');
+const PublicAPI = require('./publicAPI');
 
 class CalcIndicators {
 
-  constructor(buyCoefficient, sellCoefficient, candleInterval1, candleInterval2, calcValues) {
+  constructor(buyCoefficient, sellCoefficient, candleInterval1, candleInterval2, calcValues, logger, stateManager) {
     this.red = 8;
     this.green = 4;
     this.buyCoefficient = buyCoefficient;
@@ -15,14 +13,17 @@ class CalcIndicators {
     this.candleInterval2 = candleInterval2;
     this.calcValues = calcValues;
     this.candlesAmount = this.calcValues + this.red - 1; // this.calcValues * this.red;
+    this.logger = logger;
+    this.stateManager = stateManager;
+    this.publicAPI = new PublicAPI(logger);
   }
 
   async calculateSignals(symbol, initRun) {
 
     // get the candles
-    var candles = await publicAPI.getCandles(symbol, this.candleInterval1, this.candlesAmount);
-    logger.info('call to get candles completed', { length: candles.length, symbol: symbol });
-    logger.info(`Candles for ${symbol}`, { candles: candles });
+    var candles = await this.publicAPI.getCandles(symbol, this.candleInterval1, this.candlesAmount);
+    this.logger.info('call to get candles completed', { length: candles.length, symbol: symbol });
+    this.logger.info(`Candles for ${symbol}`, { candles: candles });
 
     // calculate the indicators
     var arrRed = [];
@@ -31,35 +32,37 @@ class CalcIndicators {
       arrRed.push(this.calculateIndicator(candles, i, this.red));
       arrGreen.push(this.calculateIndicator(candles, i, this.green));
     }
-    logger.info('Indicators are calculated', { symbol: symbol, red: arrRed, green: arrGreen });
+    this.logger.info('Indicators are calculated', { symbol: symbol, red: arrRed, green: arrGreen });
 
     var isSellSignal = this.isSellCheck(arrRed, arrGreen);
     var isBuySignal = false;
     if (!isSellSignal) {
       isBuySignal = await this.isBuySignal(symbol, arrRed, arrGreen);
     }
-    logger.info('Signals are calculated', { symbol: symbol, isSellSignal: isSellSignal, isBuySignal: isBuySignal });
+    this.logger.info('Signals are calculated', {
+      symbol: symbol, isSellSignal: isSellSignal, isBuySignal: isBuySignal,
+    });
 
-    stateManager.storeSignals(symbol, isSellSignal, isBuySignal, arrGreen[0], initRun);
+    this.stateManager.storeSignals(symbol, isSellSignal, isBuySignal, arrGreen[0], initRun);
 
     return [isSellSignal, isBuySignal, arrGreen[0]];
   }
 
   async isBuySignal(symbol, arrRed, arrGreen) {
     if (this.isFirstBuyCheck(arrRed, arrGreen)) {
-      logger.info('first buy indicator IS GOT', { symbol: symbol, red: arrRed, green: arrGreen });
+      this.logger.info('first buy indicator IS GOT', { symbol: symbol, red: arrRed, green: arrGreen });
       // await telegramBot.sendMessage(`I got first buy indicator for ${symbol}`);
       if (this.candleInterval1 === this.candleInterval2) { // skipping the second check
-        logger.info('Checking the second buy indicator is skipped as candle intervals are the same',
+        this.logger.info('Checking the second buy indicator is skipped as candle intervals are the same',
           { symbol: symbol, candleInterval: this.candleInterval1 });
         return true;
       }
-      var candles = await publicAPI.getCandles(symbol, this.candleInterval2, this.red);
+      var candles = await this.publicAPI.getCandles(symbol, this.candleInterval2, this.red);
       var nRed = this.calculateIndicator(candles, 1, this.red);
       var nGreen = this.calculateIndicator(candles, 1, this.green);
-      logger.info('Indicators for second check are calculated', { symbol: symbol, red: nRed, green: nGreen });
+      this.logger.info('Indicators for second check are calculated', { symbol: symbol, red: nRed, green: nGreen });
       if (nGreen > nRed) {
-        logger.info('second buy indicator IS GOT', { symbol: symbol, red: nRed, green: nGreen });
+        this.logger.info('second buy indicator IS GOT', { symbol: symbol, red: nRed, green: nGreen });
         // await telegramBot.sendMessage(`I got second buy indicator for ${symbol}`);
         return true;
       }

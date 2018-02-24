@@ -3,9 +3,7 @@
 const API_KEY = process.env.API_KEY;
 const API_SECRET_KEY = process.env.API_SECRET_KEY;
 
-const logger = require('./logger').init();
 const telegramBot = require('./telegramBot');
-const stateManager = require('./stateManager');
 
 const axios = require('axios');
 axios.defaults.baseURL = 'https://api.binance.com/api/v3';
@@ -19,7 +17,9 @@ class PrivateAPI {
 
   // https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md
 
-  constructor() {
+  constructor(logger, stateManager) {
+    this.logger = logger;
+    this.stateManager = stateManager;
     this.recvWindow = 10000;
   }
 
@@ -44,22 +44,22 @@ class PrivateAPI {
         return response.data;
       } catch (err) {
         console.log(err);
-        logger.error('Error calling open orders', err.response ? err.response.data : err);
+        this.logger.error('Error calling open orders', err.response ? err.response.data : err);
         if (i === intervals.length - 1) {
           await telegramBot.sendMessage(
             `I am off because I got an error checking the open orders -
               ${err.response ? JSON.stringify(err.response.data) : 'no response'}`);
           process.exit();
         } else {
-          logger.error(`Waiting ${intervals[i]}ms before retry, attempt ${i + 1}`);
+          this.logger.error(`Waiting ${intervals[i]}ms before retry, attempt ${i + 1}`);
           await timeout(intervals[i]);
         }
       }
     }
   };
 
-
   async getAccount() {
+    this.logger.info('Calling getAccount...');
     let accountUrl = '/account';
     for (let i = 0; i < intervals.length; i++) {
       try {
@@ -79,14 +79,14 @@ class PrivateAPI {
         return response.data.balances;
       } catch (err) {
         console.log(err);
-        logger.error('Error calling getAccount', err.response ? err.response.data : err);
+        this.logger.error('Error calling getAccount', err.response ? err.response.data : err);
         if (i === intervals.length - 1) {
           await telegramBot.sendMessage(
             `I am off because I got an error checking the account info -
               ${err.response ? JSON.stringify(err.response.data) : 'no response'}`);
           process.exit();
         } else {
-          logger.error(`Waiting ${intervals[i]}ms before retry, attempt ${i + 1}`);
+          this.logger.error(`Waiting ${intervals[i]}ms before retry, attempt ${i + 1}`);
           await timeout(intervals[i]);
         }
       }
@@ -95,7 +95,7 @@ class PrivateAPI {
 
   async cancelOrder(symbol, orderId) {
 
-    logger.info('cancel order arguments', arguments);
+    this.logger.info('cancel order arguments', arguments);
 
     let orderUrl = '/order';
 
@@ -124,14 +124,14 @@ class PrivateAPI {
       } catch (err) {
         console.log(err);
         console.log(`Waiting ${intervals[i]}ms before retry, attempt ${i + 1}`);
-        logger.error('Error placing the cancel order', {err: err.response ? err.response.data : err});
+        this.logger.error('Error placing the cancel order', {err: err.response ? err.response.data : err});
         if (i === intervals.length - 1) {
           await telegramBot.sendMessage(
             `I am off because I got an error placing the cancel order -
               ${err.response ? JSON.stringify(err.response.data) : 'no response'}`);
           process.exit();
         } else {
-          logger.error(`Waiting ${intervals[i]}ms before retry, attempt ${i + 1}`);
+          this.logger.error(`Waiting ${intervals[i]}ms before retry, attempt ${i + 1}`);
           await timeout(intervals[i]);
         }
       }
@@ -140,7 +140,7 @@ class PrivateAPI {
 
   async placeOrder(side, type, symbol, quantity, isTest, stopPrice, limitStopPrice) {
 
-    logger.info('place order arguments', arguments);
+    this.logger.info('place order arguments', arguments);
 
     let orderUrl = '/order';
     if (isTest) {
@@ -180,14 +180,14 @@ class PrivateAPI {
       } catch (err) {
         console.log(err);
         console.log(`Waiting ${intervals[i]}ms before retry, attempt ${i + 1}`);
-        logger.error('Error placing the order', {err: err.response ? err.response.data : err});
+        this.logger.error('Error placing the order', {err: err.response ? err.response.data : err});
         if (i === intervals.length - 1) {
           await telegramBot.sendMessage(
             `I am off because I got an error placing the order -
               ${err.response ? JSON.stringify(err.response.data) : 'no response'}`);
           process.exit();
         } else {
-          logger.error(`Waiting ${intervals[i]}ms before retry, attempt ${i + 1}`);
+          this.logger.error(`Waiting ${intervals[i]}ms before retry, attempt ${i + 1}`);
           await timeout(intervals[i]);
         }
       }
@@ -206,21 +206,21 @@ class PrivateAPI {
 
   async placeMarketSellOrder(symbol, quantity, isTest) {
     let response = await this.placeOrder('SELL', 'MARKET', ...arguments);
-    logger.info('The response from placing sell order', {response: response.data});
-    stateManager.storeOrder(symbol, 'SELL', new Date().getTime(), quantity, response.data.orderId, 0);
+    this.logger.info('The response from placing sell order', {response: response.data});
+    this.stateManager.storeOrder(symbol, 'SELL', new Date().getTime(), quantity, response.data.orderId, 0);
     await telegramBot.sendMessage(
       `I sucessfully placed market SELL order for ${symbol}`); // todo : add more information here
   }
 
   async placeStopLossOrder(symbol, quantity, isTest, stopPrice, limitStopPrice) {
     let response = await this.placeOrder('SELL', 'STOP_LOSS_LIMIT', ...arguments);
-    logger.info('The response from placing STOP LOSS order', {response: response.data});
+    this.logger.info('The response from placing STOP LOSS order', {response: response.data});
     return response;
   }
 
   async placeMarketBuyOrder(symbol, quantity, isTest) {
     let response = await this.placeOrder('BUY', 'MARKET', symbol, quantity, isTest);
-    logger.info('The response from placing buy order', {response: response.data});
+    this.logger.info('The response from placing buy order', {response: response.data});
 
     if (isTest) { // secure the process flow
       response.data.status = 'TEST';
@@ -232,17 +232,17 @@ class PrivateAPI {
     }
     if (!response.data.fills) { // this is a temporary solution, hopefully
       await telegramBot.sendMessage('THE ORDER RESPONSE DOESNT CONTAIN FILLS SECTION, EXITTING....');
-      logger.info('THE ORDER RESPONSE DOESNT CONTAIN FILLS SECTION, EXITTING....');
+      this.logger.info('THE ORDER RESPONSE DOESNT CONTAIN FILLS SECTION, EXITTING....');
       process.exit();
     }
     const avg = this.calcPrice(response.data.fills);
     const status = response.data.status;
     // const transactTime - use THAT
-    stateManager.storeOrder(symbol, 'BUY', new Date().getTime(), quantity, response.data.orderId, avg);
+    this.stateManager.storeOrder(symbol, 'BUY', new Date().getTime(), quantity, response.data.orderId, avg);
     await telegramBot.sendMessage(
       `I sucessfully placed market BUY order for ${symbol}, avg ${avg}, status ${status}`);
     return avg;
   }
 }
 
-module.exports = new PrivateAPI();
+module.exports = PrivateAPI;

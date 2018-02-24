@@ -7,16 +7,16 @@ const logger = require('./services/logger').init();
 const telegramBot = require('./services/telegramBot');
 const CalcIndicators = require('./services/calcIndicators');
 const stateManager = require('./services/stateManager');
-const publicAPI = require('./services/publicAPI');
-const privateAPI = require('./services/privateAPI');
+const PublicAPI = require('./services/publicAPI');
+const PrivateAPI = require('./services/privateAPI');
 
 // --------------------------------------------------------------------------------------
 let interval = 10000; // value in ms between iterations, sleep time
 let candleInterval1 = '1h'; // candle size for first buy check
 let candleInterval2 = '1h'; // candle size for second buy check
 let calcValues = 2; // how many indications should be calculated
-let isTestSellOrder = false; // submit an order using test endpoint
-let isTestBuyOrder = false; // submit an order using test endpoint
+let isTestSellOrder = true; // submit an order using test endpoint
+let isTestBuyOrder = true; // submit an order using test endpoint
 let buyCoefficient = 1.0002; // green should be higher by 0.02%
 let sellCoefficient = 1.0002; // red should be higher by 0.02%
 let hodlBought = 600000; // how many ms hodl since buying the bought coin and ignore the sell signal
@@ -37,8 +37,11 @@ const timeout = ms => new Promise(res => setTimeout(res, ms));
 const calcIndicators = new CalcIndicators(
   buyCoefficient, sellCoefficient,
   candleInterval1, candleInterval2,
-  calcValues
+  calcValues, logger, stateManager
 );
+const privateAPI = new PrivateAPI(logger, stateManager);
+const publicAPI = new PublicAPI(logger);
+
 
 var main = async function () {
 
@@ -101,7 +104,7 @@ var main = async function () {
         let openOrdersResponse = await privateAPI.openOrders(symbol);
         logger.info(`response from checking the open orders for ${symbol}`, { response: openOrdersResponse });
         let orderId = (openOrdersResponse[0] || {}).orderId;
-        if (orderId) {
+        if (orderId && !isTestSellOrder) {
           // todo : we need to cancel sell order
           let cancelResponse = await privateAPI.cancelOrder(symbol, orderId);
           logger.info('The response from cancelling order', { response: cancelResponse.data });
