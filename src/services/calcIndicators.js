@@ -25,6 +25,8 @@ class CalcIndicators {
     this.logger.info('call to get candles completed', { length: candles.length, symbol: symbol });
     this.logger.info(`Candles for ${symbol}`, { candles: candles });
 
+    let lastClosePrice = Number(candles[candles.length - 1][4]); // will be used for comparison
+
     // calculate the indicators
     var arrRed = [];
     var arrGreen = [];
@@ -45,7 +47,7 @@ class CalcIndicators {
 
     this.stateManager.storeSignals(symbol, isSellSignal, isBuySignal, arrGreen[0], initRun);
 
-    return [isSellSignal, isBuySignal, arrGreen[0]];
+    return [isSellSignal, isBuySignal, arrGreen[0], lastClosePrice];
   }
 
   async isBuySignal(symbol, arrRed, arrGreen) {

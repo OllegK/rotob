@@ -42,7 +42,6 @@ const calcIndicators = new CalcIndicators(
 const privateAPI = new PrivateAPI(logger, stateManager);
 const publicAPI = new PublicAPI(logger);
 
-
 var main = async function () {
 
   for (var i = 0; i < symbols.length; i++) {
@@ -62,7 +61,8 @@ var main = async function () {
     // check exchange info to find info about current pair
     var symbolInfo = calcIndicators.getSymbolInfo(exchangeInfo, symbol);
 
-    var [isSell, isBuy, nGreen] = await calcIndicators.calculateSignals(symbol, false);
+    // todo: return the price of closing
+    var [isSell, isBuy, nGreen, lastClosePrice] = await calcIndicators.calculateSignals(symbol, false);
 
     // check the base asset balance to find if robot needs to sell
     let [myQuoteBalance] = calcIndicators.getBalance(mySymbols, symbolInfo.quoteAsset);
@@ -71,6 +71,7 @@ var main = async function () {
       {
         symbol: symbol, myBaseBalance: myBaseBalance, myBaseBalanceLocked: myBaseBalanceLocked,
         myQuoteBalance: myQuoteBalance, isSell: isSell, isBuy: isBuy,
+        lastClosePrice: lastClosePrice, green: nGreen,
       });
     var timestamp = new Date().getTime();
     if (((myBaseBalance > 0) || (myBaseBalanceLocked > 0)) && isSell) { // has something to sell

@@ -83,22 +83,22 @@ In case of error, the robot terminates its execution. This behavior will be chan
 Sometime trying to create the order, binance responds with error "Timestamp for this request is outside of the recvWindow". Seems this window is 5 seconds by default, and not sure why does it happen. Possible workaround: increase the window in input parameters, if this issue is annoying (planned for release 0.2) 
 
 # Roadmap
-## Current release is 0.1.2
-## Release 0.2
-0) Stop-loss (configurable parameter of accepted loss)
-1) Get rid of hardcoded delay after placing the order
-2) Error handling continious improvement, save state
+## Current release is 0.2
+PREPARATION FOR DEPLOYMENT
 ## Release 0.3
-0) Moveable stop-loss
-1) ?? Analyze the amount of signals during the period (24h), and don't buy if is гармошка
-2) ?? Hodl coins, don't sell at lower price?  
+0) Error handling continious improvement, save state.
+1) Moveable stop-loss (Denis' zagogulina).
 ## Future possible improvements
-0) ?? Signal (buy/sell) should be confirmed several times in a row before taking an action (amount of times will be configurable). Do we need that?
-1) ?? Diversification and full investment of available deposit (find all possible pairs and split deposit between them). Do we need that?
-2) ?? Bot asks if a coin should be sold/bought
+0) Analyze the amount of signals during the period (24h), and don't buy if it is гармошка.
+1) Diversification and full investment of the available deposit (find all possible pairs and split deposit between them).
+2) Bot asks if coin should be sold/bought.
 3) (можно позже прикрутить) чтобы если он на одной паре делает покупки продажи часто, например каждый час, если мы на часовике, то покупки по этой паре на какое-то время игнорирует
-4) ?? Notify me flag on the pair
-5) ?? Sell indicator not by the values, but by crossing the values as it is done for buy signal (??)
+4) Notification flag on the pair
+5) Sell indicator not by just the values, but by crossing the values as it is done for buy signal (??)
 6) {code: -2010, msg: "Account has insufficient balance for request action"} - now it is just applied 0.95 to balance
 7) Take into the account the exchange fee calculating the price of stop loss
 8) crossing could happen when both indicators are in down trend (rarely)
+9) https://api.binance.com/wapi/v3/systemStatus.html
+10) Have the acceptable errors for REST calling
+11) Write LOG file for each pair
+12) Check the status of pair in getExchangeInfo - TRADING OR NOT? Invalidate Exchange Info

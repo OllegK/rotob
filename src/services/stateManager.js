@@ -85,12 +85,14 @@ class StateManager {
     throw new Error('Get buy signal time is not found. It should never happen!');
   }
 
+/*
   getOrderId(symbol) {
     if (this.state[symbol]) {
       return this.state[symbol].ORDER_BUY_ID;
     }
     throw new Error('get order id exception!');
   }
+*/
 
   getBuyTime(symbol) {
     if (this.state[symbol]) {

@@ -2,8 +2,12 @@
 
 const { createLogger, format, transports } = require('winston');
 const { combine } = format;
+const fs = require('fs');
 
 var init = function () {
+
+
+  fs.mkdir('./logs', () => { });
 
   const logger = createLogger({
     format: combine(
@@ -39,8 +43,16 @@ var init = function () {
       }),
     ),
     transports: [
-      new transports.File({ filename: 'output.log' }),
-      new transports.File({ filename: 'error.log', level: 'error' }),
+      new transports.File({
+        filename: './logs/output.log',
+        maxsize: 1024 * 1024 * 50,
+        maxFiles: 999,
+        tailable: true,
+      }),
+      new transports.File({
+        filename: './logs/error.log',
+        level: 'error'
+      }),
     ],
   });
 
