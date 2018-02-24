@@ -20,7 +20,7 @@ let isTestBuyOrder = false; // submit an order using test endpoint
 let buyCoefficient = 1.0002; // green should be higher by 0.02%
 let sellCoefficient = 1.0002; // red should be higher by 0.02%
 let hodlBought = 600000; // how many ms hodl since buying the bought coin and ignore the sell signal
-  // too short could cause the buy signal ignoring? VVV
+// too short could cause the buy signal ignoring? VVV
 let buySignalIsValid = 10000; // how many ms the buy signal is valid; could be set to 0 to prevent any buy
 let stateValidity = 300000; // how many ms the stored state is valid, if not valid the state will be reset ({})
 let placeStopLoss = true; // please stop-loss order when bought
@@ -97,14 +97,14 @@ var main = async function () {
       }
       // if we are here, we decided to sell
       if (myBaseBalanceLocked > 0) {
-        //var orderId = stateManager.getOrderId(symbol);
+        // var orderId = stateManager.getOrderId(symbol);
         let openOrdersResponse = await privateAPI.openOrders(symbol);
-        logger.info(`response from checking the open orders for ${symbol}`, {response: openOrdersResponse});
+        logger.info(`response from checking the open orders for ${symbol}`, { response: openOrdersResponse });
         let orderId = (openOrdersResponse[0] || {}).orderId;
         if (orderId) {
           // todo : we need to cancel sell order
           let cancelResponse = await privateAPI.cancelOrder(symbol, orderId);
-          logger.info('The response from cancelling order', {response: cancelResponse.data});
+          logger.info('The response from cancelling order', { response: cancelResponse.data });
           await telegramBot.sendMessage(
             `I sucessfully cancelled STOP LOSS order for ${symbol}, orderId ${orderId}, locked ${myBaseBalanceLocked}`);
           myBaseBalance += myBaseBalanceLocked;
@@ -137,16 +137,17 @@ var main = async function () {
           let stopPrice = calcIndicators.formatPrice(avg * (100 - acceptedLoss) / 100, symbolInfo);
           let limitStopPrice = calcIndicators.formatPrice(stopPrice * (100 - limitAcceptedLoss) / 100, symbolInfo);
           if (calcIndicators.checkMinNotion(limitStopPrice, buyAmount, symbolInfo)) {
-            logger.info('The stop loss prices are calculated', {stopPrice: stopPrice, limitStopPrice: limitStopPrice});
+            logger.info('The stop prices are calculated', { stopPrice: stopPrice, limitStopPrice: limitStopPrice });
             let stopResponse =
               await privateAPI.placeStopLossOrder(symbol, buyAmount, isTestBuyOrder, stopPrice, limitStopPrice);
-            logger.info('The response from placing stop loss order', {response: stopResponse.data});
+            logger.info('The response from placing stop loss order', { response: stopResponse.data });
             await telegramBot.sendMessage(
               `I sucessfully placed STOP LOSS order for ${symbol}, avg ${avg}, prices ${stopPrice}/${limitStopPrice}`);
           } else {
-            logger.info('MIN_NOTION is not passed', {symbol: symbol, limitStopPrice: limitStopPrice, buyAmount: buyAmount});
+            logger.info('MIN_NOTION is not passed',
+              { symbol: symbol, limitStopPrice: limitStopPrice, buyAmount: buyAmount });
             await telegramBot.sendMessage(
-              `MIN_NOTION is not passed for ${symbol}, limitStopPrice: ${limitStopPrice}, amount: ${buyAmount}`);
+              `MIN_NOTION failure for ${symbol}, limitStopPrice: ${limitStopPrice}, amount: ${buyAmount}`);
           }
         }
         mySymbols = null;

@@ -87,7 +87,7 @@ class StateManager {
 
   getOrderId(symbol) {
     if (this.state[symbol]) {
-        return this.state[symbol].ORDER_BUY_ID;
+      return this.state[symbol].ORDER_BUY_ID;
     }
     throw new Error('get order id exception!');
   }
@@ -120,7 +120,7 @@ class StateManager {
     this.writeState();
   }
 
-  getState(){
+  getState() {
     return this.state;
   }
 

@@ -156,7 +156,7 @@ class CalcIndicators {
   checkMinNotion(limitStopPrice, buyAmount, symbolInfo) {
     var minNotional = symbolInfo.filters.filter(elem => 'MIN_NOTIONAL' === elem.filterType);
     var min = minNotional[0].minNotional;
-    return (min < limitStopPrice * buyAmount)
+    return (min < limitStopPrice * buyAmount);
   }
 
   getSellAmount(balance, symbolInfo) {
@@ -172,7 +172,6 @@ class CalcIndicators {
 
     // return Number(balance).toFixed(i + 1);
   }
-
 }
 
 module.exports = CalcIndicators;
