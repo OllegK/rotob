@@ -23,6 +23,42 @@ class PrivateAPI {
     this.recvWindow = 10000;
   }
 
+  async openOrders(symbol) {
+    let openOrdersUrl = '/openOrders';
+    for (let i = 0; i < intervals.length; i++) {
+      try {
+        let timestamp = new Date().getTime();
+        let signature = crypto.createHmac('sha256',
+          API_SECRET_KEY).update(`symbol=${symbol}&timestamp=${timestamp}&recvWindow=${this.recvWindow}`).digest('hex');
+        let response = await axios.get(openOrdersUrl, {
+          params: {
+            symbol: symbol,
+            timestamp: timestamp,
+            recvWindow: this.recvWindow,
+            signature: signature,
+          },
+          headers: {
+            'X-MBX-APIKEY': API_KEY,
+          },
+        });
+        return response.data;
+      } catch (err) {
+        console.log(err);
+        logger.error('Error calling open orders', err.response ? err.response.data : err);
+        if (i === intervals.length - 1) {
+          await telegramBot.sendMessage(
+            `I am off because I got an error checking the open orders -
+              ${err.response ? JSON.stringify(err.response.data) : 'no response'}`);
+          process.exit();
+        } else {
+          logger.error(`Waiting ${intervals[i]}ms before retry, attempt ${i + 1}`);
+          await timeout(intervals[i]);
+        }
+      }
+    }
+  };
+
+
   async getAccount() {
     let accountUrl = '/account';
     for (let i = 0; i < intervals.length; i++) {
@@ -59,6 +95,8 @@ class PrivateAPI {
 
   async cancelOrder(symbol, orderId) {
 
+    logger.info('cancel order arguments', arguments);
+
     let orderUrl = '/order';
 
     for (let i = 0; i < intervals.length; i++) {
@@ -77,7 +115,7 @@ class PrivateAPI {
         }, []).join('&');
         let signature = crypto.createHmac('sha256', API_SECRET_KEY).update(query).digest('hex');
         params.signature = signature;
-        return await axios.delete(orderUrl, '', {
+        return await axios.delete(orderUrl, {
           params: params,
           headers: {
             'X-MBX-APIKEY': API_KEY,
@@ -174,13 +212,13 @@ class PrivateAPI {
       `I sucessfully placed market SELL order for ${symbol}`); // todo : add more information here
   }
 
-  async placeStopLossOrder(symbol, quantity, isTest, stopPrice) {
+  async placeStopLossOrder(symbol, quantity, isTest, stopPrice, limitStopPrice) {
     let response = await this.placeOrder('SELL', 'STOP_LOSS_LIMIT', ...arguments);
     logger.info('The response from placing STOP LOSS order', {response: response.data});
     return response;
   }
 
-  async placeMarketBuyOrder(symbol, quantity, isTest, placeStopLoss, acceptedLoss, limitAcceptedLoss, symbolInfo) {
+  async placeMarketBuyOrder(symbol, quantity, isTest) {
     let response = await this.placeOrder('BUY', 'MARKET', symbol, quantity, isTest);
     logger.info('The response from placing buy order', {response: response.data});
 
@@ -203,15 +241,7 @@ class PrivateAPI {
     stateManager.storeOrder(symbol, 'BUY', new Date().getTime(), quantity, response.data.orderId, avg);
     await telegramBot.sendMessage(
       `I sucessfully placed market BUY order for ${symbol}, avg ${avg}, status ${status}`);
-    if (placeStopLoss) {
-      let stopPrice = avg * (100 - acceptedLoss) / 100;
-      let limitStopPrice = stopPrice * (100 - limitAcceptedLoss) / 100;
-      logger.info('The stop loss pricess is calculated', {stopPrice: stopPrice});
-      let stopResponse = await this.placeStopLossOrder(symbol, quantity, isTest, stopPrice, limitStopPrice);
-      logger.info('The response from placing stop loss order', {response: stopResponse.data});
-      await telegramBot.sendMessage(
-        `I sucessfully placed STOP LOSS order for ${symbol}, avg ${avg}, stop price ${stopPrice}`);
-    }
+    return avg;
   }
 }
 

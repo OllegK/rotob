@@ -22,7 +22,7 @@ class CalcIndicators {
     // get the candles
     var candles = await publicAPI.getCandles(symbol, this.candleInterval1, this.candlesAmount);
     logger.info('call to get candles completed', { length: candles.length, symbol: symbol });
-    logger.info('Candles', { candles: candles });
+    logger.info(`Candles for ${symbol}`, { candles: candles });
 
     // calculate the indicators
     var arrRed = [];
@@ -138,16 +138,34 @@ class CalcIndicators {
 
   };
 
+  getLen(s) { // return the length after that
+    var arr = s.split('.');
+    arr = arr[1].split('1');
+    return arr[0].length;
+  }
+
+  formatPrice(price, symbolInfo) {
+    var priceFilter = symbolInfo.filters.filter(elem => 'PRICE_FILTER' === elem.filterType);
+    var tickSize = priceFilter[0].tickSize;
+    let i = this.getLen(tickSize);
+
+    var f = Math.pow(10, i + 1);
+    return Math.floor(price * f) / f;
+  }
+
+  checkMinNotion(limitStopPrice, buyAmount, symbolInfo) {
+    var minNotional = symbolInfo.filters.filter(elem => 'MIN_NOTIONAL' === elem.filterType);
+    var min = minNotional[0].minNotional;
+    return (min < limitStopPrice * buyAmount)
+  }
+
   getSellAmount(balance, symbolInfo) {
     var lotsize = symbolInfo.filters.filter(elem => 'LOT_SIZE' === elem.filterType);
     var minAllowedAmount = lotsize[0].minQty;
-    // var stepSize = lotsize[0].stepSize;
     if (Number(minAllowedAmount) === 1) {
       return Math.floor(balance);
     }
-    var arr = minAllowedAmount.split('.');
-    arr = arr[1].split('1');
-    var i = arr[0].length;
+    let i = this.getLen(minAllowedAmount);
 
     var f = Math.pow(10, i + 1);
     return Math.floor(balance * f) / f;

@@ -32,15 +32,18 @@ Change the settings in robot.js if needed
 ``` javascript
 let interval = 60000; // value in ms between iterations, sleep time
 let candleInterval1 = '1h'; // candle size for first buy check
-let candleInterval2 = '4h'; // candle size for second buy check
-let calcValues = 3; // how many indications should be calculated
-let isTestSellOrder = true; // submit an order using test endpoint
-let isTestBuyOrder = true; // submit an order using test endpoint
+let candleInterval2 = '1h'; // candle size for second buy check
+let calcValues = 2; // how many indications should be calculated
+let isTestSellOrder = false; // submit an order using test endpoint
+let isTestBuyOrder = false; // submit an order using test endpoint
 let buyCoefficient = 1.0002; // green should be higher by 0.02%
 let sellCoefficient = 1.0002; // red should be higher by 0.02%
 let hodlBought = 600000; // how many ms hodl since buying the bought coin and ignore the sell signal
 let buySignalIsValid = 10000; // how many ms the buy signal is valid; could be set to 0 to prevent any buy
-let stateValidity = 180000; // how many ms the stored state is valid
+let stateValidity = 300000; // how many ms the stored state is valid, if not valid the state will be reset ({})
+let placeStopLoss = true; // please stop-loss order when bought
+let acceptedLoss = 2; // percentage of allowable less when placing the stop-loss order
+let limitAcceptedLoss = 5; // calculated from acceptedLoss
 ```
 
 There are also hardcoded coefficient in calcIndicators.js, check that there is 5% difference between values (in future versions will be parametrized)
