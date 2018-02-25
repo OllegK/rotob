@@ -4,13 +4,15 @@ const PublicAPI = require('./publicAPI');
 
 class CalcIndicators {
 
-  constructor(buyCoefficient, sellCoefficient, candleInterval1, candleInterval2, calcValues, logger, stateManager) {
+  constructor(buyCoefficient, sellCoefficient, candleInterval1,
+    candleInterval2, candleInterval3, calcValues, logger, stateManager) {
     this.red = 8;
     this.green = 4;
     this.buyCoefficient = buyCoefficient;
     this.sellCoefficient = sellCoefficient;
     this.candleInterval1 = candleInterval1;
     this.candleInterval2 = candleInterval2;
+    this.candleInterval3 = candleInterval3;
     this.calcValues = calcValues;
     this.candlesAmount = this.calcValues + this.red - 1; // this.calcValues * this.red;
     this.logger = logger;
@@ -66,7 +68,19 @@ class CalcIndicators {
       if (nGreen > nRed) {
         this.logger.info('second buy indicator IS GOT', { symbol: symbol, red: nRed, green: nGreen });
         // await telegramBot.sendMessage(`I got second buy indicator for ${symbol}`);
-        return true;
+        if (this.candleInterval2 === this.candleInterval3) { // skipping the 3rd check
+          this.logger.info('Checking the third buy indicator is skipped as candle intervals are the same',
+            { symbol: symbol, candleInterval: this.candleInterval2 });
+          return true;
+        }
+        candles = await this.publicAPI.getCandles(symbol, this.candleInterval3, this.red);
+        nRed = this.calculateIndicator(candles, 1, this.red);
+        nGreen = this.calculateIndicator(candles, 1, this.green);
+        this.logger.info('Indicators for third check are calculated', { symbol: symbol, red: nRed, green: nGreen });
+        if (nGreen > nRed) {
+          this.logger.info('third buy indicator IS GOT', { symbol: symbol, red: nRed, green: nGreen });
+          return true;
+        }
       }
     }
     return false;

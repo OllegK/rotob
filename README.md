@@ -30,20 +30,24 @@ npm install --only=production
 ## Change the settings if needed
 Change the settings in robot.js if needed
 ``` javascript
-let interval = 60000; // value in ms between iterations, sleep time
-let candleInterval1 = '1h'; // candle size for first buy check
-let candleInterval2 = '1h'; // candle size for second buy check
+let interval = 10000; // value in ms between iterations, sleep time
+let candleInterval1 = '5m'; // candle size for first buy check
+let candleInterval2 = '15m'; // candle size for second buy check
+let candleInterval3 = '1h'; // candle size for second buy check
 let calcValues = 2; // how many indications should be calculated
-let isTestSellOrder = false; // submit an order using test endpoint
-let isTestBuyOrder = false; // submit an order using test endpoint
+let isTestSellOrder = true; // submit an order using test endpoint
+let isTestBuyOrder = true; // submit an order using test endpoint
 let buyCoefficient = 1.0002; // green should be higher by 0.02%
 let sellCoefficient = 1.0002; // red should be higher by 0.02%
 let hodlBought = 600000; // how many ms hodl since buying the bought coin and ignore the sell signal
+// too short could cause the buy signal ignoring? VVV
 let buySignalIsValid = 10000; // how many ms the buy signal is valid; could be set to 0 to prevent any buy
 let stateValidity = 300000; // how many ms the stored state is valid, if not valid the state will be reset ({})
 let placeStopLoss = true; // please stop-loss order when bought
-let acceptedLoss = 2; // percentage of allowable less when placing the stop-loss order
-let limitAcceptedLoss = 5; // calculated from acceptedLoss
+let acceptedLoss = 1; // percentage of allowable less when placing the stop-loss order
+let limitAcceptedLoss = 2; // calculated from acceptedLoss
+
+let holdCoef = 1.01; // the last close price should be at least 1 percent higher than bought price
 ```
 
 There are also hardcoded coefficient in calcIndicators.js, check that there is 5% difference between values (in future versions will be parametrized)
@@ -69,21 +73,16 @@ var isSell = function (red, green) {
 Execute at command prompt
 npm start
 
-Robot is fully functional, so if you have BTC balance, it will try to place the orders or sell your coins if sell indicator is met. Honestly I don't test with the positive balance yet. For now you can run it with zero balance, in this case you will be annoyed with repeating signals. 
-
 Timestamps are in GMT
 
 Symbols to be traded are in ./src/symbols.js file
 State is saved into ./state.json 
 
-# Error handling
-In case of error, the robot terminates its execution. This behavior will be changed in future versions.
-
-# Known issues
-Sometime trying to create the order, binance responds with error "Timestamp for this request is outside of the recvWindow". Seems this window is 5 seconds by default, and not sure why does it happen. Possible workaround: increase the window in input parameters, if this issue is annoying (planned for release 0.2) 
+# What's new
+## 0.2.1
 
 # Roadmap
-## Current release is 0.2
+## TODO
 PREPARATION FOR DEPLOYMENT
 ## Release 0.3
 0) Error handling continious improvement, save state.
@@ -104,3 +103,5 @@ PREPARATION FOR DEPLOYMENT
 12) Check the status of pair in getExchangeInfo - TRADING OR NOT? Invalidate Exchange Info
 13) no trades on weekend?
 14) Check 3 intervals
+15) if there is a balance, robot never buys?
+16) DON'T SELL IF NOT BOUGHT - CHECK QUANTITY

@@ -10,10 +10,13 @@ const stateManager = require('./services/stateManager');
 const PublicAPI = require('./services/publicAPI');
 const PrivateAPI = require('./services/privateAPI');
 
+const version = '0.2.1';
+
 // --------------------------------------------------------------------------------------
 let interval = 10000; // value in ms between iterations, sleep time
-let candleInterval1 = '1h'; // candle size for first buy check
-let candleInterval2 = '1h'; // candle size for second buy check
+let candleInterval1 = '5m'; // candle size for first buy check
+let candleInterval2 = '15m'; // candle size for second buy check
+let candleInterval3 = '1h'; // candle size for second buy check
 let calcValues = 2; // how many indications should be calculated
 let isTestSellOrder = true; // submit an order using test endpoint
 let isTestBuyOrder = true; // submit an order using test endpoint
@@ -26,6 +29,8 @@ let stateValidity = 300000; // how many ms the stored state is valid, if not val
 let placeStopLoss = true; // please stop-loss order when bought
 let acceptedLoss = 1; // percentage of allowable less when placing the stop-loss order
 let limitAcceptedLoss = 2; // calculated from acceptedLoss
+
+let hodlCoef = 1.01; // the last close price should be at least 1 percent higher than bought price
 // --------------------------------------------------------------------------------------
 
 let mySymbols = null;
@@ -36,7 +41,7 @@ const timeout = ms => new Promise(res => setTimeout(res, ms));
 
 const calcIndicators = new CalcIndicators(
   buyCoefficient, sellCoefficient,
-  candleInterval1, candleInterval2,
+  candleInterval1, candleInterval2, candleInterval3,
   calcValues, logger, stateManager
 );
 const privateAPI = new PrivateAPI(logger, stateManager);
@@ -76,28 +81,28 @@ var main = async function () {
     var timestamp = new Date().getTime();
     if (((myBaseBalance > 0) || (myBaseBalanceLocked > 0)) && isSell) { // has something to sell
       logger.info('Selling ................', { symbol: symbol });
-      await doSell(symbol, myBaseBalance, myBaseBalanceLocked, timestamp, nGreen, symbols[i].isHodl);
+      await doSell(symbol, myBaseBalance, myBaseBalanceLocked, timestamp, lastClosePrice, symbols[i].isHodl);
     } else if (myBaseBalance === 0 && myQuoteBalance > 0 && isBuy) { // if not bought yet
       logger.info('Buying ................', { symbol: symbol });
-      await doBuy(symbol, myQuoteBalance, limitToSpent, symbolInfo, timestamp, nGreen);
+      await doBuy(symbol, myQuoteBalance, limitToSpent, symbolInfo, timestamp, lastClosePrice);
     }
   };
 };
 
-var doBuy = async function(symbol, myQuoteBalance, limitToSpent, symbolInfo, timestamp, nGreen) {
+var doBuy = async function(symbol, myQuoteBalance, limitToSpent, symbolInfo, timestamp, lastClosePrice) {
   if ((timestamp - stateManager.getBuySignalTime(symbol)) >= buySignalIsValid) {
     logger.info('BUY SIGNAL IS NOT FRESH ENOUGH', { symbol: symbol });
     // await telegramBot.sendMessage(`I am NOT going to buy ${symbol}, as this buy signal is not fresh anymore`);
     return;
   }
-  var [spentAmount, buyAmount] = calcIndicators.getBuyAmount(myQuoteBalance, limitToSpent, symbolInfo, nGreen);
+  var [spentAmount, buyAmount] = calcIndicators.getBuyAmount(myQuoteBalance, limitToSpent, symbolInfo, lastClosePrice);
   if (buyAmount > 0) {
     logger.info('calculated buyAmount',
       {
         symbol: symbol, myBalance: myQuoteBalance, limitToSpent: limitToSpent,
-        buyAmount: buyAmount, spentAmount: spentAmount, green: nGreen,
+        buyAmount: buyAmount, spentAmount: spentAmount, green: lastClosePrice,
       });
-    await telegramBot.sendMessage(`${symbol}: buy amount ${buyAmount}, spent ${spentAmount}, green ${nGreen}`);
+    await telegramBot.sendMessage(`${symbol}: buy amount ${buyAmount}, spent ${spentAmount}, green ${lastClosePrice}`);
     let avg = await privateAPI.placeMarketBuyOrder(symbol, buyAmount, isTestBuyOrder);
     if (placeStopLoss) {
       let stopPrice = calcIndicators.formatPrice(avg * (100 - acceptedLoss) / 100, symbolInfo);
@@ -125,7 +130,7 @@ var doBuy = async function(symbol, myQuoteBalance, limitToSpent, symbolInfo, tim
   }
 };
 
-var doSell = async function(symbol, myBaseBalance, myBaseBalanceLocked, symbolInfo, timestamp, nGreen, isHodl) {
+var doSell = async function(symbol, myBaseBalance, myBaseBalanceLocked, symbolInfo, timestamp, lastClosePrice, isHodl) {
   if ((timestamp - stateManager.getBuyTime(symbol)) < hodlBought) {
     logger.info('SHOULD BE HODLED', { symbol: symbol });
     await telegramBot.sendMessage(`I am going to HODL ${symbol} even if I got the sell indicator`);
@@ -133,19 +138,19 @@ var doSell = async function(symbol, myBaseBalance, myBaseBalanceLocked, symbolIn
   }
   if (isHodl) {
     let buyPrice = stateManager.getBuyPrice(symbol);
-    logger.info('Buy price is gotten', { symbol: symbol, buyPrice: buyPrice, green: nGreen });
+    logger.info('Buy price is gotten', { symbol: symbol, buyPrice: buyPrice, lastClosePrice: lastClosePrice });
     if (0 === buyPrice) {
       // logger.info('No sell, this is hodl coin, and buy price is not found',
-      //  { symbol: symbol, green: nGreen });
+      //  { symbol: symbol, lastClosePrice: lastClosePrice });
       // await telegramBot.sendMessage(
-      //  `No sell, this is hodl coin - ${symbol}, and buy price is not found, ${nGreen}`);
+      //  `No sell, this is hodl coin - ${symbol}, and buy price is not found, ${lastClosePrice}`);
       return;
     }
-    if (buyPrice > nGreen) {
+    if ((buyPrice * hodlCoef) > lastClosePrice) {
       logger.info('No sell, this is hodl coin, and buy price was higher',
-        { symbol: symbol, buyPrice: buyPrice, green: nGreen });
+        { symbol: symbol, buyPrice: buyPrice, lastClosePrice: lastClosePrice, holdCoef: hodlCoef });
       await telegramBot.sendMessage(
-        `No sell, this is hodl coin - ${symbol}, and buy price ${buyPrice} is higher ${nGreen}`);
+        `No sell, this is hodl coin - ${symbol}, buy price ${buyPrice}x${hodlCoef} is higher ${lastClosePrice}`);
       return;
     }
   }
@@ -201,7 +206,7 @@ var runToInitState = async function () {
 };
 
 var start = async function () {
-  await telegramBot.sendMessage(`I am starting with ${calcValues} values and interval ${interval}ms`);
+  await telegramBot.sendMessage(`I am starting with ${calcValues} values, interval ${interval}ms, version ${version}`);
   // await telegramBot.sendMessage(`Pairs in attention ${JSON.stringify({ symbols: symbols })}`);
   logger.info('Starting .........................');
 
