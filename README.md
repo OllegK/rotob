@@ -102,3 +102,5 @@ PREPARATION FOR DEPLOYMENT
 10) Have the acceptable errors for REST calling
 11) Write LOG file for each pair
 12) Check the status of pair in getExchangeInfo - TRADING OR NOT? Invalidate Exchange Info
+13) no trades on weekend?
+14) Check 3 intervals

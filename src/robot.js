@@ -76,93 +76,100 @@ var main = async function () {
     var timestamp = new Date().getTime();
     if (((myBaseBalance > 0) || (myBaseBalanceLocked > 0)) && isSell) { // has something to sell
       logger.info('Selling ................', { symbol: symbol });
-      if ((timestamp - stateManager.getBuyTime(symbol)) < hodlBought) {
-        logger.info('SHOULD BE HODLED', { symbol: symbol });
-        await telegramBot.sendMessage(`I am going to HODL ${symbol} even if I got the sell indicator`);
-        continue;
-      }
-      if (symbols[i].isHodl) {
-        let buyPrice = stateManager.getBuyPrice(symbol);
-        logger.info('Buy price is gotten', { symbol: symbol, buyPrice: buyPrice, green: nGreen });
-        if (0 === buyPrice) {
-          // logger.info('No sell, this is hodl coin, and buy price is not found',
-          //  { symbol: symbol, green: nGreen });
-          // await telegramBot.sendMessage(
-          //  `No sell, this is hodl coin - ${symbol}, and buy price is not found, ${nGreen}`);
-          continue;
-        }
-        if (buyPrice > nGreen) {
-          logger.info('No sell, this is hodl coin, and buy price was higher',
-            { symbol: symbol, buyPrice: buyPrice, green: nGreen });
-          await telegramBot.sendMessage(
-            `No sell, this is hodl coin - ${symbol}, and buy price ${buyPrice} is higher ${nGreen}`);
-          continue;
-        }
-      }
-      // if we are here, we decided to sell
-      if (myBaseBalanceLocked > 0) {
-        // var orderId = stateManager.getOrderId(symbol);
-        let openOrdersResponse = await privateAPI.openOrders(symbol);
-        logger.info(`response from checking the open orders for ${symbol}`, { response: openOrdersResponse });
-        let orderId = (openOrdersResponse[0] || {}).orderId;
-        if (orderId && !isTestSellOrder) {
-          // todo : we need to cancel sell order
-          let cancelResponse = await privateAPI.cancelOrder(symbol, orderId);
-          logger.info('The response from cancelling order', { response: cancelResponse.data });
-          await telegramBot.sendMessage(
-            `I sucessfully cancelled STOP LOSS order for ${symbol}, orderId ${orderId}, locked ${myBaseBalanceLocked}`);
-          myBaseBalance += myBaseBalanceLocked;
-        }
-      }
-      var sellAmount = calcIndicators.getSellAmount(myBaseBalance, symbolInfo);
-      logger.info('I am going to place sell order', { symbol: symbol, sellAmount: sellAmount });
-      if (sellAmount > 0) {
-        await telegramBot.sendMessage(`I am going to place sell order for ${symbol}, sell amount - ${sellAmount}`);
-        await privateAPI.placeMarketSellOrder(symbol, sellAmount, isTestSellOrder);
-        mySymbols = null;
-      }
+      await doSell(symbol, myBaseBalance, myBaseBalanceLocked, timestamp, nGreen, symbols[i].isHodl);
     } else if (myBaseBalance === 0 && myQuoteBalance > 0 && isBuy) { // if not bought yet
       logger.info('Buying ................', { symbol: symbol });
-      if ((timestamp - stateManager.getBuySignalTime(symbol)) >= buySignalIsValid) {
-        logger.info('BUY SIGNAL IS NOT FRESH ENOUGH', { symbol: symbol });
-        // await telegramBot.sendMessage(`I am NOT going to buy ${symbol}, as this buy signal is not fresh anymore`);
-        continue;
-      }
-      var [spentAmount, buyAmount] = calcIndicators.getBuyAmount(myQuoteBalance, limitToSpent, symbolInfo, nGreen);
-      if (buyAmount > 0) {
-        logger.info('calculated buyAmount',
-          {
-            symbol: symbol, myBalance: myQuoteBalance, limitToSpent: limitToSpent,
-            buyAmount: buyAmount, spentAmount: spentAmount,
-          });
-        await telegramBot.sendMessage(`${symbol}: buy amount ${buyAmount}, spent ${spentAmount}, green ${nGreen}`);
-        let avg = await privateAPI.placeMarketBuyOrder(symbol, buyAmount, isTestBuyOrder);
-        if (placeStopLoss) {
-          let stopPrice = calcIndicators.formatPrice(avg * (100 - acceptedLoss) / 100, symbolInfo);
-          let limitStopPrice = calcIndicators.formatPrice(stopPrice * (100 - limitAcceptedLoss) / 100, symbolInfo);
-          if (calcIndicators.checkMinNotion(limitStopPrice, buyAmount, symbolInfo)) {
-            logger.info('The stop prices are calculated', { stopPrice: stopPrice, limitStopPrice: limitStopPrice });
-            let stopResponse =
-              await privateAPI.placeStopLossOrder(symbol, buyAmount, isTestBuyOrder, stopPrice, limitStopPrice);
-            logger.info('The response from placing stop loss order', { response: stopResponse.data });
-            await telegramBot.sendMessage(
-              `I sucessfully placed STOP LOSS order for ${symbol}, avg ${avg}, prices ${stopPrice}/${limitStopPrice}`);
-          } else {
-            logger.info('MIN_NOTION is not passed',
-              { symbol: symbol, limitStopPrice: limitStopPrice, buyAmount: buyAmount });
-            await telegramBot.sendMessage(
-              `MIN_NOTION failure for ${symbol}, limitStopPrice: ${limitStopPrice}, amount: ${buyAmount}`);
-          }
-        }
-        mySymbols = null;
-      } else {
-        logger.info('no buy, buy amount is 0',
-          { quoteAsset: symbolInfo.quoteAsset, myQuoteBalance: myQuoteBalance });
-        await telegramBot.sendMessage(
-          `No buy ${symbol}, buy amount is ${buyAmount}; your ${symbolInfo.quoteAsset} balance is ${myQuoteBalance}`);
-      }
+      await doBuy(symbol, myQuoteBalance, limitToSpent, symbolInfo, timestamp, nGreen);
     }
   };
+};
+
+var doBuy = async function(symbol, myQuoteBalance, limitToSpent, symbolInfo, timestamp, nGreen) {
+  if ((timestamp - stateManager.getBuySignalTime(symbol)) >= buySignalIsValid) {
+    logger.info('BUY SIGNAL IS NOT FRESH ENOUGH', { symbol: symbol });
+    // await telegramBot.sendMessage(`I am NOT going to buy ${symbol}, as this buy signal is not fresh anymore`);
+    return;
+  }
+  var [spentAmount, buyAmount] = calcIndicators.getBuyAmount(myQuoteBalance, limitToSpent, symbolInfo, nGreen);
+  if (buyAmount > 0) {
+    logger.info('calculated buyAmount',
+      {
+        symbol: symbol, myBalance: myQuoteBalance, limitToSpent: limitToSpent,
+        buyAmount: buyAmount, spentAmount: spentAmount, green: nGreen,
+      });
+    await telegramBot.sendMessage(`${symbol}: buy amount ${buyAmount}, spent ${spentAmount}, green ${nGreen}`);
+    let avg = await privateAPI.placeMarketBuyOrder(symbol, buyAmount, isTestBuyOrder);
+    if (placeStopLoss) {
+      let stopPrice = calcIndicators.formatPrice(avg * (100 - acceptedLoss) / 100, symbolInfo);
+      let limitStopPrice = calcIndicators.formatPrice(stopPrice * (100 - limitAcceptedLoss) / 100, symbolInfo);
+      if (calcIndicators.checkMinNotion(limitStopPrice, buyAmount, symbolInfo)) {
+        logger.info('The stop prices are calculated', { stopPrice: stopPrice, limitStopPrice: limitStopPrice });
+        let stopResponse =
+          await privateAPI.placeStopLossOrder(symbol, buyAmount, isTestBuyOrder, stopPrice, limitStopPrice);
+        logger.info('The response from placing stop loss order', { response: stopResponse.data });
+        await telegramBot.sendMessage(
+          `I sucessfully placed STOP LOSS order for ${symbol}, avg ${avg}, prices ${stopPrice}/${limitStopPrice}`);
+      } else {
+        logger.info('MIN_NOTION is not passed',
+          { symbol: symbol, limitStopPrice: limitStopPrice, buyAmount: buyAmount });
+        await telegramBot.sendMessage(
+          `MIN_NOTION failure for ${symbol}, limitStopPrice: ${limitStopPrice}, amount: ${buyAmount}`);
+      }
+    }
+    mySymbols = null;
+  } else {
+    logger.info('no buy, buy amount is 0',
+      { quoteAsset: symbolInfo.quoteAsset, myQuoteBalance: myQuoteBalance });
+    await telegramBot.sendMessage(
+      `No buy ${symbol}, buy amount is ${buyAmount}; your ${symbolInfo.quoteAsset} balance is ${myQuoteBalance}`);
+  }
+};
+
+var doSell = async function(symbol, myBaseBalance, myBaseBalanceLocked, symbolInfo, timestamp, nGreen, isHodl) {
+  if ((timestamp - stateManager.getBuyTime(symbol)) < hodlBought) {
+    logger.info('SHOULD BE HODLED', { symbol: symbol });
+    await telegramBot.sendMessage(`I am going to HODL ${symbol} even if I got the sell indicator`);
+    return;
+  }
+  if (isHodl) {
+    let buyPrice = stateManager.getBuyPrice(symbol);
+    logger.info('Buy price is gotten', { symbol: symbol, buyPrice: buyPrice, green: nGreen });
+    if (0 === buyPrice) {
+      // logger.info('No sell, this is hodl coin, and buy price is not found',
+      //  { symbol: symbol, green: nGreen });
+      // await telegramBot.sendMessage(
+      //  `No sell, this is hodl coin - ${symbol}, and buy price is not found, ${nGreen}`);
+      return;
+    }
+    if (buyPrice > nGreen) {
+      logger.info('No sell, this is hodl coin, and buy price was higher',
+        { symbol: symbol, buyPrice: buyPrice, green: nGreen });
+      await telegramBot.sendMessage(
+        `No sell, this is hodl coin - ${symbol}, and buy price ${buyPrice} is higher ${nGreen}`);
+      return;
+    }
+  }
+  // if we are here, we decided to sell
+  if (myBaseBalanceLocked > 0) {
+    // var orderId = stateManager.getOrderId(symbol);
+    let openOrdersResponse = await privateAPI.openOrders(symbol);
+    logger.info(`response from checking the open orders for ${symbol}`, { response: openOrdersResponse });
+    let orderId = (openOrdersResponse[0] || {}).orderId;
+    if (orderId && !isTestSellOrder) {
+      let cancelResponse = await privateAPI.cancelOrder(symbol, orderId);
+      logger.info('The response from cancelling order', { response: cancelResponse.data });
+      await telegramBot.sendMessage(
+        `I sucessfully cancelled STOP LOSS order for ${symbol}, orderId ${orderId}, locked ${myBaseBalanceLocked}`);
+      myBaseBalance += myBaseBalanceLocked;
+    }
+  }
+  var sellAmount = calcIndicators.getSellAmount(myBaseBalance, symbolInfo);
+  logger.info('I am going to place sell order', { symbol: symbol, sellAmount: sellAmount });
+  if (sellAmount > 0) {
+    await telegramBot.sendMessage(`I am going to place sell order for ${symbol}, sell amount - ${sellAmount}`);
+    await privateAPI.placeMarketSellOrder(symbol, sellAmount, isTestSellOrder);
+    mySymbols = null;
+  }
 };
 
 var runMain = async function (nr) {
