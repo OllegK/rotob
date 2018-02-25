@@ -140,32 +140,39 @@ class CalcIndicators {
     throw new Error('Not found info about asset....' + asset);
   };
 
-  // (myQuoteBalance, limitToBuy, symbolInfo, nGreen)
-  getBuyAmount(balance, limitToSpent, symbolInfo, avgPrice) {
-    var lotsize = symbolInfo.filters.filter(elem => 'LOT_SIZE' === elem.filterType);
-    var minAllowedAmount = lotsize[0].minQty;
-    if (minAllowedAmount > 0) {
-      var spent = Math.min(balance * 0.95, limitToSpent); // 0.95 is multiplied trying to avoid -2010
-      var buy = (spent / avgPrice);
-
-      buy = (Math.floor(buy / minAllowedAmount) * minAllowedAmount).toFixed(8);
-
-      return [spent, buy]; // calculate max amount to be paid
-    } else {
-      throw new Error('Not found minimal allowed amount....' + symbolInfo);
-    }
-
-  };
-
   getLen(s) { // return the length after that
     var arr = s.split('.');
     arr = arr[1].split('1');
     return arr[0].length;
   }
 
+  getFilter(symbolInfo, filterType, value) {
+    var filtered = symbolInfo.filters.filter(elem => filterType === elem.filterType);
+    return filtered[0].value;
+  }
+
+  // (myQuoteBalance, limitToBuy, symbolInfo, nGreen)
+  getBuyAmount(balance, limitToSpent, symbolInfo, avgPrice) {
+    let minAllowedAmount = this.getFilter(symbolInfo, 'LOT_SIZE', 'minQty');
+    let minNotional = this.getFilter(symbolInfo, 'MIN_NOTIONAL', 'minNotional');
+    if (minAllowedAmount > 0) {
+      let toBeSpent = Math.min(balance * 0.95, limitToSpent); // 0.95 is multiplied trying to avoid -2010
+
+      if (toBeSpent < minNotional) { // for stop-loss
+        return [0, 0];
+      }
+
+      let toBuy = (toBeSpent / avgPrice);
+      toBuy = (Math.floor(toBuy / minAllowedAmount) * minAllowedAmount).toFixed(8);
+
+      return [toBeSpent, toBuy]; // calculate max amount to be paid
+    } else {
+      throw new Error('Not found minimal allowed amount....' + symbolInfo);
+    }
+  };
+
   formatPrice(price, symbolInfo) {
-    var priceFilter = symbolInfo.filters.filter(elem => 'PRICE_FILTER' === elem.filterType);
-    var tickSize = priceFilter[0].tickSize;
+    let tickSize = this.getFilter(symbolInfo, 'PRICE_FILTER', 'tickSize');
     let i = this.getLen(tickSize);
 
     var f = Math.pow(10, i + 1);
@@ -173,14 +180,12 @@ class CalcIndicators {
   }
 
   checkMinNotion(limitStopPrice, buyAmount, symbolInfo) {
-    var minNotional = symbolInfo.filters.filter(elem => 'MIN_NOTIONAL' === elem.filterType);
-    var min = minNotional[0].minNotional;
-    return (min < limitStopPrice * buyAmount);
+    let minNotional = this.getFilter(symbolInfo, 'MIN_NOTIONAL', 'minNotional');
+    return (minNotional < limitStopPrice * buyAmount);
   }
 
   getSellAmount(balance, symbolInfo) {
-    var lotsize = symbolInfo.filters.filter(elem => 'LOT_SIZE' === elem.filterType);
-    var minAllowedAmount = lotsize[0].minQty;
+    let minAllowedAmount = this.getFilter(symbolInfo, 'LOT_SIZE', 'minQty');
     if (Number(minAllowedAmount) === 1) {
       return Math.floor(balance);
     }

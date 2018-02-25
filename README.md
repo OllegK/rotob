@@ -80,6 +80,11 @@ State is saved into ./state.json
 
 # What's new
 ## 0.2.1
+1. Rolling the log-files (10M).
+2. The last close price is used to check if hodl coin could be sold (instead of green price), and also the last close price is used to calculate how many coin could be bought.
+3. Added 3rd candleinterval (so bought signal could be confirmed by two additional checks). This check also done applying coefficient hodlCoef to get the minimal return.
+4. Balances are checked before starting each iteration.
+5. The amount to spent will not be lower than min notional to be able to place the stop loss order.
 
 # Roadmap
 ## TODO

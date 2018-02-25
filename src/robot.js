@@ -18,8 +18,8 @@ let candleInterval1 = '5m'; // candle size for first buy check
 let candleInterval2 = '15m'; // candle size for second buy check
 let candleInterval3 = '1h'; // candle size for second buy check
 let calcValues = 2; // how many indications should be calculated
-let isTestSellOrder = true; // submit an order using test endpoint
-let isTestBuyOrder = true; // submit an order using test endpoint
+let isTestSellOrder = false; // submit an order using test endpoint
+let isTestBuyOrder = false; // submit an order using test endpoint
 let buyCoefficient = 1.0002; // green should be higher by 0.02%
 let sellCoefficient = 1.0002; // red should be higher by 0.02%
 let hodlBought = 600000; // how many ms hodl since buying the bought coin and ignore the sell signal
@@ -180,7 +180,7 @@ var doSell = async function(symbol, myBaseBalance, myBaseBalanceLocked, symbolIn
 var runMain = async function (nr) {
 
   logger.info('running main', { iteration: ++nr });
-  if (nr % 100 === 0) {
+  if (nr % 500 === 0) {
     await telegramBot.sendMessage(`Master, I am still running - ${nr} iterations`);
   }
 
@@ -189,6 +189,8 @@ var runMain = async function (nr) {
 
   logger.info('scheduling the next run', { interval: interval, nr: nr });
   await timeout(interval);
+
+  mySymbols = null; // 0.2.1
   runMain(nr);
 };
 
