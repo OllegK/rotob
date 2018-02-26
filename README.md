@@ -85,6 +85,8 @@ State is saved into ./state.json
 3. Added 3rd candleinterval (so bought signal could be confirmed by two additional checks). This check also done applying coefficient hodlCoef to get the minimal return.
 4. Balances are checked before starting each iteration.
 5. The amount to spent will not be lower than min notional to be able to place the stop loss order.
+# 0.2.1.1
+1. Fixed bug when locked balance is not checked before taking a buy decission
 
 # Roadmap
 ## TODO
@@ -107,6 +109,7 @@ PREPARATION FOR DEPLOYMENT
 11) Write LOG file for each pair
 12) Check the status of pair in getExchangeInfo - TRADING OR NOT? Invalidate Exchange Info
 13) no trades on weekend?
-14) Check 3 intervals
-15) if there is a balance, robot never buys?
-16) DON'T SELL IF NOT BOUGHT - CHECK QUANTITY
+14) if there is a balance, robot never buys?
+15) DON'T SELL IF NOT BOUGHT - CHECK QUANTITY
+16) Check time difference on https://api.binance.com/api/v1/time and adjust it for rest services
+17) WSS to learn that cancel order is processed

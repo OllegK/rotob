@@ -148,7 +148,7 @@ class CalcIndicators {
 
   getFilter(symbolInfo, filterType, value) {
     var filtered = symbolInfo.filters.filter(elem => filterType === elem.filterType);
-    return filtered[0].value;
+    return filtered[0][value];
   }
 
   // (myQuoteBalance, limitToBuy, symbolInfo, nGreen)

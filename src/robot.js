@@ -10,7 +10,7 @@ const stateManager = require('./services/stateManager');
 const PublicAPI = require('./services/publicAPI');
 const PrivateAPI = require('./services/privateAPI');
 
-const version = '0.2.1';
+const version = '0.2.1.1';
 
 // --------------------------------------------------------------------------------------
 let interval = 10000; // value in ms between iterations, sleep time
@@ -81,15 +81,17 @@ var main = async function () {
     var timestamp = new Date().getTime();
     if (((myBaseBalance > 0) || (myBaseBalanceLocked > 0)) && isSell) { // has something to sell
       logger.info('Selling ................', { symbol: symbol });
-      await doSell(symbol, myBaseBalance, myBaseBalanceLocked, timestamp, lastClosePrice, symbols[i].isHodl);
-    } else if (myBaseBalance === 0 && myQuoteBalance > 0 && isBuy) { // if not bought yet
+      await doSell(
+        symbol, myBaseBalance, myBaseBalanceLocked, symbolInfo, timestamp, lastClosePrice, symbols[i].isHodl);
+    } else if (myBaseBalance === 0 && myBaseBalanceLocked === 0 && myQuoteBalance > 0 && isBuy) { // if not bought yet
       logger.info('Buying ................', { symbol: symbol });
-      await doBuy(symbol, myQuoteBalance, limitToSpent, symbolInfo, timestamp, lastClosePrice);
+      await doBuy(symbol, myQuoteBalance, limitToSpent, symbolInfo, timestamp, lastClosePrice, nGreen);
     }
   };
 };
 
-var doBuy = async function(symbol, myQuoteBalance, limitToSpent, symbolInfo, timestamp, lastClosePrice) {
+var doBuy = async function(symbol, myQuoteBalance, limitToSpent, symbolInfo, timestamp, lastClosePrice, nGreen) {
+  // logger.info ('do buy arguments', arguments);
   if ((timestamp - stateManager.getBuySignalTime(symbol)) >= buySignalIsValid) {
     logger.info('BUY SIGNAL IS NOT FRESH ENOUGH', { symbol: symbol });
     // await telegramBot.sendMessage(`I am NOT going to buy ${symbol}, as this buy signal is not fresh anymore`);
@@ -100,10 +102,12 @@ var doBuy = async function(symbol, myQuoteBalance, limitToSpent, symbolInfo, tim
     logger.info('calculated buyAmount',
       {
         symbol: symbol, myBalance: myQuoteBalance, limitToSpent: limitToSpent,
-        buyAmount: buyAmount, spentAmount: spentAmount, green: lastClosePrice,
+        buyAmount: buyAmount, spentAmount: spentAmount, lastClosePrice: lastClosePrice,
+        green: nGreen,
       });
-    await telegramBot.sendMessage(`${symbol}: buy amount ${buyAmount}, spent ${spentAmount}, green ${lastClosePrice}`);
     let avg = await privateAPI.placeMarketBuyOrder(symbol, buyAmount, isTestBuyOrder);
+    await telegramBot.sendMessage(
+      `${symbol}: bought ${buyAmount}, green ${nGreen}, last close price ${lastClosePrice}, order avg price ${avg}`);
     if (placeStopLoss) {
       let stopPrice = calcIndicators.formatPrice(avg * (100 - acceptedLoss) / 100, symbolInfo);
       let limitStopPrice = calcIndicators.formatPrice(stopPrice * (100 - limitAcceptedLoss) / 100, symbolInfo);
@@ -131,8 +135,10 @@ var doBuy = async function(symbol, myQuoteBalance, limitToSpent, symbolInfo, tim
 };
 
 var doSell = async function(symbol, myBaseBalance, myBaseBalanceLocked, symbolInfo, timestamp, lastClosePrice, isHodl) {
-  if ((timestamp - stateManager.getBuyTime(symbol)) < hodlBought) {
-    logger.info('SHOULD BE HODLED', { symbol: symbol });
+  // logger.info ('do sell arguments', arguments);
+  let buyTime = stateManager.getBuyTime(symbol);
+  if ((timestamp - buyTime) < hodlBought) {
+    logger.info('SHOULD BE HODLED', { symbol: symbol, hodlBought: hodlBought, current: timestamp, buyTime: buyTime });
     await telegramBot.sendMessage(`I am going to HODL ${symbol} even if I got the sell indicator`);
     return;
   }
