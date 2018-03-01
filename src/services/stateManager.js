@@ -11,6 +11,7 @@ class StateManager {
 
   initState(stateValidity) {
     var isValid = false;
+    this.state = {};
     if (fs.existsSync(this.filePath)) {
       this.state = JSON.parse(fs.readFileSync(this.filePath, 'utf8'));
       var timestamp = new Date().getTime();
