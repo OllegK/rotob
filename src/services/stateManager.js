@@ -33,7 +33,7 @@ class StateManager {
 
   writeState() {
     if (!this.state) {
-      this.state = {};
+      return;
     }
     this.state.timestamp = new Date().getTime();
 

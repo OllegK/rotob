@@ -17,17 +17,23 @@ class PrivateAPI {
 
   // https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md
 
-  constructor(logger, stateManager) {
+  constructor(logger, stateManager, timeDifference) {
     this.logger = logger;
     this.stateManager = stateManager;
     this.recvWindow = 10000;
+    this.timeDifference = timeDifference;
+  }
+
+  setTimeDifference(timeDifference) {
+    this.timeDifference = timeDifference;
+    this.logger.info(`inside private api time difference is ${this.timeDifference}`)
   }
 
   async openOrders(symbol) {
     let openOrdersUrl = '/openOrders';
     for (let i = 0; i < intervals.length; i++) {
       try {
-        let timestamp = new Date().getTime();
+        let timestamp = new Date().getTime() - this.timeDifference;
         let signature = crypto.createHmac('sha256',
           API_SECRET_KEY).update(`symbol=${symbol}&timestamp=${timestamp}&recvWindow=${this.recvWindow}`).digest('hex');
         let response = await axios.get(openOrdersUrl, {
@@ -63,7 +69,7 @@ class PrivateAPI {
     let accountUrl = '/account';
     for (let i = 0; i < intervals.length; i++) {
       try {
-        let timestamp = new Date().getTime();
+        let timestamp = new Date().getTime() - this.timeDifference;
         let signature = crypto.createHmac('sha256',
           API_SECRET_KEY).update(`timestamp=${timestamp}&recvWindow=${this.recvWindow}`).digest('hex');
         let response = await axios.get(accountUrl, {
@@ -102,7 +108,7 @@ class PrivateAPI {
     for (let i = 0; i < intervals.length; i++) {
 
       try {
-        let timestamp = new Date().getTime();
+        let timestamp = new Date().getTime() - this.timeDifference;
         var params = {
           symbol: symbol,
           orderId: orderId,
@@ -150,7 +156,7 @@ class PrivateAPI {
     for (let i = 0; i < intervals.length; i++) {
 
       try {
-        let timestamp = new Date().getTime();
+        let timestamp = new Date().getTime() - this.timeDifference;
         var params = {
           symbol: symbol,
           side: side,
@@ -240,7 +246,7 @@ class PrivateAPI {
     // const transactTime - use THAT
     this.stateManager.storeOrder(symbol, 'BUY', new Date().getTime(), quantity, response.data.orderId, avg);
     await telegramBot.sendMessage(
-      `I sucessfully placed market BUY order for ${symbol}, avg ${avg}, status ${status}`);
+      `I sucessfully placed market BUY order for ${symbol}, quantity ${quantity}, avg price ${avg}, status ${status}`);
     return avg;
   }
 }

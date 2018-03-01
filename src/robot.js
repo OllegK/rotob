@@ -10,7 +10,8 @@ const stateManager = require('./services/stateManager');
 const PublicAPI = require('./services/publicAPI');
 const PrivateAPI = require('./services/privateAPI');
 
-const version = '0.2.1.1';
+const version = '0.2.1.2';
+
 
 // --------------------------------------------------------------------------------------
 let interval = 10000; // value in ms between iterations, sleep time
@@ -35,6 +36,7 @@ let hodlCoef = 1.01; // the last close price should be at least 1 percent higher
 
 let mySymbols = null;
 let exchangeInfo;
+let timeDifference = 0;
 let symbols = require('./symbols').returnSymbols();
 
 const timeout = ms => new Promise(res => setTimeout(res, ms));
@@ -44,7 +46,7 @@ const calcIndicators = new CalcIndicators(
   candleInterval1, candleInterval2, candleInterval3,
   calcValues, logger, stateManager
 );
-const privateAPI = new PrivateAPI(logger, stateManager);
+const privateAPI = new PrivateAPI(logger, stateManager, timeDifference);
 const publicAPI = new PublicAPI(logger);
 
 var main = async function () {
@@ -187,7 +189,10 @@ var runMain = async function (nr) {
 
   logger.info('running main', { iteration: ++nr });
   if (nr % 500 === 0) {
-    await telegramBot.sendMessage(`Master, I am still running - ${nr} iterations`);
+    timeDifference = await publicAPI.getServerTime();
+    logger.info('calculated time difference in ms - ' + timeDifference);
+    privateAPI.setTimeDifference(timeDifference);
+    await telegramBot.sendMessage(`Master, I am still running - ${nr} iterations. Calculated time difference is ${timeDifference}ms`);
   }
 
   await main();
@@ -218,6 +223,11 @@ var start = async function () {
   // await telegramBot.sendMessage(`Pairs in attention ${JSON.stringify({ symbols: symbols })}`);
   logger.info('Starting .........................');
 
+  timeDifference = await publicAPI.getServerTime();
+  logger.info('calculated time difference in ms - ' + timeDifference);
+  privateAPI.setTimeDifference(timeDifference);
+  await telegramBot.sendMessage(`Calculated time difference is ${timeDifference}ms`);
+
   exchangeInfo = await publicAPI.getExchangeInfo();
   logger.info('getExchangeInfo is completed');
 
@@ -227,6 +237,7 @@ var start = async function () {
     stateManager.writeState();
   }
   logger.info('initState is completed', { state: stateManager.getState() });
+
 
   let iterations = 0;
   runMain(iterations);

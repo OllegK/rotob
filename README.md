@@ -87,13 +87,14 @@ State is saved into ./state.json
 5. The amount to spent will not be lower than min notional to be able to place the stop loss order.
 # 0.2.1.1
 1. Fixed bug when locked balance is not checked before taking a buy decission
-
+# 0.2.1.2
+1. Check the server time to adjust the time difference between server and client
+2. Fixed bug when state is erased in case of exitting almost immediately after start
 # Roadmap
 ## TODO
 PREPARATION FOR DEPLOYMENT
 ## Release 0.3
-0) Error handling continious improvement, save state.
-1) Moveable stop-loss (Denis' zagogulina).
+0) Moveable stop-loss (Denis' zagogulina, crossing the falling candle).
 ## Future possible improvements
 0) Analyze the amount of signals during the period (24h), and don't buy if it is гармошка.
 1) Diversification and full investment of the available deposit (find all possible pairs and split deposit between them).
@@ -113,3 +114,4 @@ PREPARATION FOR DEPLOYMENT
 15) DON'T SELL IF NOT BOUGHT - CHECK QUANTITY
 16) Check time difference on https://api.binance.com/api/v1/time and adjust it for rest services
 17) WSS to learn that cancel order is processed
+18) Exit could be checked on another candle interval then enter
