@@ -90,6 +90,8 @@ State is saved into ./state.json
 # 0.2.1.2
 1. Check the server time to adjust the time difference between server and client
 2. Fixed bug when state is erased in case of exitting almost immediately after start
+# 0.2.1.3
+1. First version of moveable stop loss order
 # Roadmap
 ## TODO
 PREPARATION FOR DEPLOYMENT
@@ -112,6 +114,6 @@ PREPARATION FOR DEPLOYMENT
 13) no trades on weekend?
 14) if there is a balance, robot never buys?
 15) DON'T SELL IF NOT BOUGHT - CHECK QUANTITY
-16) Check time difference on https://api.binance.com/api/v1/time and adjust it for rest services
-17) WSS to learn that cancel order is processed
-18) Exit could be checked on another candle interval then enter
+16) WSS to learn that cancel order is processed
+17) Exit could be checked on another candle interval then enter
+18) moving order what happens when moved order is partially fillled and doesn't meet MIN_NOTION condition

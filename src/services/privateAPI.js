@@ -26,7 +26,7 @@ class PrivateAPI {
 
   setTimeDifference(timeDifference) {
     this.timeDifference = timeDifference;
-    this.logger.info(`inside private api time difference is ${this.timeDifference}`)
+    this.logger.info(`inside private api time difference is ${this.timeDifference}`);
   }
 
   async openOrders(symbol) {

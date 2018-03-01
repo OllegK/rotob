@@ -20,6 +20,48 @@ class CalcIndicators {
     this.publicAPI = new PublicAPI(logger);
   }
 
+  /*
+      1499040000000,      // Open time
+      "0.01634790",       // Open
+      "0.80000000",       // High
+      "0.01575800",       // Low
+      "0.01577100",       // Close
+      "148976.11427815",  // Volume
+      1499644799999,      // Close time
+      "2434.19055334",    // Quote asset volume
+      308,                // Number of trades
+      "1756.87402397",    // Taker buy base asset volume
+      "28.46694368",      // Taker buy quote asset volume
+      "17928899.62484339" // Ignore
+  */
+  async checkMove(symbol, moveCandleInterval) {
+    // call candles
+    let candles = await this.publicAPI.getCandles(symbol, moveCandleInterval, this.green);
+    this.logger.info('(checkMove)call to get candles completed', { length: candles.length, symbol: symbol });
+    this.logger.info(`(checkMove)Candles for ${symbol}`, { candles: candles });
+
+    // calculate one green interval
+    let nGreen = this.calculateIndicator(candles, 1, this.green);
+
+    // check last close price
+    let lastClosePrice = Number(candles[candles.length - 1][4]);
+    let highPrice = Number(candles[candles.length - 1][2]);
+    let lowPrice = Number(candles[candles.length - 1][3]);
+
+    // check condition
+    let openPrice = Number(candles[candles.length - 1][1]); // will be used for comparison
+
+    let isMove = (openPrice > lastClosePrice) && (nGreen > lowPrice) && (nGreen < highPrice);
+
+    this.logger.info('(checkMove) completed',
+      {
+        symbol: symbol, green: nGreen, isMove: isMove, lastClosePrice: lastClosePrice,
+        openPrice: openPrice, highPrice: highPrice, lowPrice: lowPrice,
+      });
+
+    return [isMove, lastClosePrice];
+  }
+
   async calculateSignals(symbol, initRun) {
 
     // get the candles
@@ -150,6 +192,20 @@ class CalcIndicators {
     var filtered = symbolInfo.filters.filter(elem => filterType === elem.filterType);
     return filtered[0][value];
   }
+
+  /*
+  formatBuyAmount(qty, symbolInfo) {
+    let minAllowedAmount = this.getFilter(symbolInfo, 'LOT_SIZE', 'minQty');
+    // return (Math.floor(qty / minAllowedAmount) * minAllowedAmount).toFixed(8);
+
+    if (Number(minAllowedAmount) === 1) {
+      return Math.floor(qty);
+    }
+    let i = this.getLen(minAllowedAmount);
+    var f = Math.pow(10, i + 1);
+    return Math.floor(balance * f) / f;
+  }
+  */
 
   // (myQuoteBalance, limitToBuy, symbolInfo, nGreen)
   getBuyAmount(balance, limitToSpent, symbolInfo, avgPrice) {
