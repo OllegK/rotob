@@ -10,8 +10,7 @@ const stateManager = require('./services/stateManager');
 const PublicAPI = require('./services/publicAPI');
 const PrivateAPI = require('./services/privateAPI');
 
-const version = '0.2.1.3';
-
+const version = '0.2.1.5';
 
 // --------------------------------------------------------------------------------------
 let interval = 10000; // value in ms between iterations, sleep time
@@ -28,7 +27,7 @@ let hodlBought = 600000; // how many ms hodl since buying the bought coin and ig
 let buySignalIsValid = 10000; // how many ms the buy signal is valid; could be set to 0 to prevent any buy
 let stateValidity = 300000; // how many ms the stored state is valid, if not valid the state will be reset ({})
 let placeStopLoss = true; // please stop-loss order when bought
-let acceptedLoss = 0.5; // percentage of allowable less when placing the stop-loss order
+let acceptedLoss = 2; // percentage of allowable less when placing the stop-loss order
 let limitAcceptedLoss = 0.5; // calculated from acceptedLoss
 let hodlCoef = 1.004; // the last close price should be at least 1 percent higher than bought price
 // ----MOVE -----------------------------------------------------------------------------
@@ -84,12 +83,13 @@ var main = async function () {
     var timestamp = new Date().getTime();
     if (((myBaseBalance > 0) || (myBaseBalanceLocked > 0)) && isSell) { // has something to sell
       logger.info('Selling ................', { symbol: symbol });
-      await doSell(
+      var isSold = await doSell(
         symbol, myBaseBalance, myBaseBalanceLocked, symbolInfo, timestamp, lastClosePrice, symbols[i].isHodl);
-    } else if (myBaseBalanceLocked > 0) { // need to check if it is should be moved
-      let [isMove, moveClosedPrice] = await calcIndicators.checkMove(symbol, moveCandleInterval);
-      if (isMove) {
-        doMove(symbol, symbolInfo, moveClosedPrice);
+      if (!isSold && (myBaseBalanceLocked > 0)) {
+        let [isMove, moveClosedPrice] = await calcIndicators.checkMove(symbol, moveCandleInterval);
+        if (isMove) {
+          doMove(symbol, symbolInfo, moveClosedPrice);
+        }
       }
     } else if (myBaseBalance === 0 && myBaseBalanceLocked === 0 && myQuoteBalance > 0 && isBuy) { // if not bought yet
       logger.info('Buying ................', { symbol: symbol });
@@ -192,13 +192,14 @@ var doBuy = async function (symbol, myQuoteBalance, limitToSpent, symbolInfo, ti
   }
 };
 
-var doSell = async function (symbol, myBaseBalance, myBaseBalanceLocked, symbolInfo, timestamp, lastClosePrice, isHodl) {
+var doSell = async function (symbol, myBaseBalance, myBaseBalanceLocked, symbolInfo,
+  timestamp, lastClosePrice, isHodl) {
   // logger.info ('do sell arguments', arguments);
   let buyTime = stateManager.getBuyTime(symbol);
   if ((timestamp - buyTime) < hodlBought) {
     logger.info('SHOULD BE HODLED', { symbol: symbol, hodlBought: hodlBought, current: timestamp, buyTime: buyTime });
     await telegramBot.sendMessage(`I am going to HODL ${symbol} even if I got the sell indicator`);
-    return;
+    return false;
   }
   if (isHodl) {
     let buyPrice = stateManager.getBuyPrice(symbol);
@@ -208,14 +209,14 @@ var doSell = async function (symbol, myBaseBalance, myBaseBalanceLocked, symbolI
       //  { symbol: symbol, lastClosePrice: lastClosePrice });
       // await telegramBot.sendMessage(
       //  `No sell, this is hodl coin - ${symbol}, and buy price is not found, ${lastClosePrice}`);
-      return;
+      return false;
     }
     if ((buyPrice * hodlCoef) > lastClosePrice) {
       logger.info('No sell, this is hodl coin, and buy price was higher',
         { symbol: symbol, buyPrice: buyPrice, lastClosePrice: lastClosePrice, holdCoef: hodlCoef });
       await telegramBot.sendMessage(
         `No sell, this is hodl coin - ${symbol}, buy price ${buyPrice}x${hodlCoef} is higher ${lastClosePrice}`);
-      return;
+      return false;
     }
   }
   // if we are here, we decided to sell
@@ -239,6 +240,7 @@ var doSell = async function (symbol, myBaseBalance, myBaseBalanceLocked, symbolI
       `I am going to place sell order for ${symbol}, sell amount:${sellAmount}, last close price:${lastClosePrice}`);
     await privateAPI.placeMarketSellOrder(symbol, sellAmount, isTestSellOrder);
     mySymbols = null;
+    return true;
   }
 };
 

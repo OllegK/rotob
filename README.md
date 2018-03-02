@@ -92,6 +92,10 @@ State is saved into ./state.json
 2. Fixed bug when state is erased in case of exitting almost immediately after start
 # 0.2.1.3
 1. First version of moveable stop loss order
+# 0.2.1.4
+1. Mongo client
+# 0.2.1.5
+1. Small correction in algorithm: moving conditions are checked even in case of sell signal (when not sold).
 # Roadmap
 ## TODO
 PREPARATION FOR DEPLOYMENT
