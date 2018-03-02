@@ -89,7 +89,7 @@ class CalcIndicators {
       symbol: symbol, isSellSignal: isSellSignal, isBuySignal: isBuySignal,
     });
 
-    this.stateManager.storeSignals(symbol, isSellSignal, isBuySignal, arrGreen[0], initRun);
+    await this.stateManager.storeSignals(symbol, isSellSignal, isBuySignal, arrGreen[0], initRun);
 
     return [isSellSignal, isBuySignal, arrGreen[0], lastClosePrice];
   }

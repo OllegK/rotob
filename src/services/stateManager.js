@@ -7,38 +7,60 @@ class StateManager {
 
   constructor() {
     this.filePath = path.join(__dirname, '/../../state.json');
+    this.mongoURL = process.env.MONGODB_URI;
+    this.isMongo = (typeof this.mongoURL !== 'undefined');
+    if (this.isMongo) {
+      console.log('THERE IS MONGO');
+      this.MongoClient = require('mongodb').MongoClient;
+    } else {
+      console.log('THERE IS NO MONGO');
+    }
   }
 
-  initState(stateValidity) {
+  async initState(stateValidity) {
     var isValid = false;
-    this.state = {};
-    if (fs.existsSync(this.filePath)) {
-      this.state = JSON.parse(fs.readFileSync(this.filePath, 'utf8'));
-      var timestamp = new Date().getTime();
-      isValid = (timestamp - this.state.timestamp) < stateValidity;
+    this.state = {timestamp: 0};
+    if (this.isMongo) {
+      let client = await this.MongoClient.connect(this.mongoURL);
+      let db = client.db(client.s.options.dbName);
+      this.collection = db.collection('state');
+      var arr = await this.collection.find({state: 'robotState'}).toArray();
+      if (arr.length === 1) {
+        this.state = arr[0];
+      }
+    } else {
+      if (fs.existsSync(this.filePath)) {
+        this.state = JSON.parse(fs.readFileSync(this.filePath, 'utf8'));
+      }
     }
+    isValid = (new Date().getTime() - this.state.timestamp) < stateValidity;
     if (!isValid) {
-      this.invalidateState();
+      await this.invalidateState();
     }
     return isValid;
   }
 
-  invalidateState() {
+  async writeState() {
+    if (!this.state) {
+      return;
+    }
+    this.state.timestamp = new Date().getTime();
+    this.state.state = 'robotState';
+
+    if (this.isMongo) {
+      await this.collection.update({state: 'robotState'}, this.state, { upsert: true });
+    } else {
+      fs.writeFileSync(this.filePath, JSON.stringify(this.state), 'utf8');
+    }
+  }
+
+  async invalidateState() {
     for (var key in this.state) {
       delete this.state[key].signal;
       delete this.state[key].timestamp;
       delete this.state[key].green;
     }
-    this.writeState();
-  }
-
-  writeState() {
-    if (!this.state) {
-      return;
-    }
-    this.state.timestamp = new Date().getTime();
-
-    fs.writeFileSync(this.filePath, JSON.stringify(this.state), 'utf8');
+    await this.writeState();
   }
 
   checkSymbol(symbol) {
@@ -47,7 +69,7 @@ class StateManager {
     }
   }
 
-  storeSignals(symbol, isSellSignal, isBuySignal, avgPrice, initState) {
+  async storeSignals(symbol, isSellSignal, isBuySignal, avgPrice, initState) {
     let timestamp = initState ? 0 : new Date().getTime();
     this.checkSymbol(symbol);
     let storedSignal = this.state[symbol].signal || '';
@@ -55,7 +77,7 @@ class StateManager {
       delete this.state[symbol].signal;
       delete this.state[symbol].timestamp;
       delete this.state[symbol].green;
-      this.writeState();
+      await this.writeState();
     } else if (isSellSignal && isBuySignal) {
       throw new Error('both signal are true');
     } else if (('BUY' === storedSignal) && isBuySignal) {
@@ -66,12 +88,12 @@ class StateManager {
       this.state[symbol].signal = 'BUY';
       this.state[symbol].timestamp = timestamp;
       this.state[symbol].green = avgPrice;
-      this.writeState();
+      await this.writeState();
     } else if (isSellSignal) {
       this.state[symbol].signal = 'SELL';
       this.state[symbol].timestamp = timestamp;
       this.state[symbol].green = avgPrice;
-      this.writeState();
+      await this.writeState();
     } else {
       throw new Error('should not be here');
     }
@@ -109,7 +131,7 @@ class StateManager {
     return 0;
   }
 
-  storeOrder(symbol, side, timestamp, quantity, orderId, avg) {
+  async storeOrder(symbol, side, timestamp, quantity, orderId, avg) {
     if (!this.state) {
       return; // for testing api
     }
@@ -120,7 +142,7 @@ class StateManager {
     if (avg) { // only for buy
       this.state[symbol]['ORDER_' + side + '_AVG'] = avg;
     }
-    this.writeState();
+    await this.writeState();
   }
 
   getState() {

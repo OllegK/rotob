@@ -213,7 +213,7 @@ class PrivateAPI {
   async placeMarketSellOrder(symbol, quantity, isTest) {
     let response = await this.placeOrder('SELL', 'MARKET', ...arguments);
     this.logger.info('The response from placing sell order', {response: response.data});
-    this.stateManager.storeOrder(symbol, 'SELL', new Date().getTime(), quantity, response.data.orderId, 0);
+    await this.stateManager.storeOrder(symbol, 'SELL', new Date().getTime(), quantity, response.data.orderId, 0);
     await telegramBot.sendMessage(
       `I sucessfully placed market SELL order for ${symbol}`); // todo : add more information here
   }
@@ -244,7 +244,7 @@ class PrivateAPI {
     const avg = this.calcPrice(response.data.fills);
     const status = response.data.status;
     // const transactTime - use THAT
-    this.stateManager.storeOrder(symbol, 'BUY', new Date().getTime(), quantity, response.data.orderId, avg);
+    await this.stateManager.storeOrder(symbol, 'BUY', new Date().getTime(), quantity, response.data.orderId, avg);
     await telegramBot.sendMessage(
       `I sucessfully placed market BUY order for ${symbol}, quantity ${quantity}, avg price ${avg}, status ${status}`);
     return avg;

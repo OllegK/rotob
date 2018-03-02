@@ -15,8 +15,8 @@ const version = '0.2.1.3';
 
 // --------------------------------------------------------------------------------------
 let interval = 10000; // value in ms between iterations, sleep time
-let candleInterval1 = '5m'; // candle size for first buy check
-let candleInterval2 = '15m'; // candle size for second buy check
+let candleInterval1 = '1h'; // candle size for first buy check
+let candleInterval2 = '30m'; // candle size for second buy check
 let candleInterval3 = '15m'; // candle size for second buy check
 let calcValues = 2; // how many indications should be calculated
 let isTestSellOrder = false; // submit an order using test endpoint
@@ -28,8 +28,8 @@ let hodlBought = 600000; // how many ms hodl since buying the bought coin and ig
 let buySignalIsValid = 10000; // how many ms the buy signal is valid; could be set to 0 to prevent any buy
 let stateValidity = 300000; // how many ms the stored state is valid, if not valid the state will be reset ({})
 let placeStopLoss = true; // please stop-loss order when bought
-let acceptedLoss = 1; // percentage of allowable less when placing the stop-loss order
-let limitAcceptedLoss = 1; // calculated from acceptedLoss
+let acceptedLoss = 0.5; // percentage of allowable less when placing the stop-loss order
+let limitAcceptedLoss = 0.5; // calculated from acceptedLoss
 let hodlCoef = 1.004; // the last close price should be at least 1 percent higher than bought price
 // ----MOVE -----------------------------------------------------------------------------
 let moveCandleInterval = '15m';
@@ -106,10 +106,11 @@ var doMove = async function (symbol, symbolInfo, moveClosedPrice) {
   let oldStopPrice = Number((openOrdersResponse[0] || {}).stopPrice);
   let origQty = (openOrdersResponse[0] || {}).origQty;
   let executedQty = Number((openOrdersResponse[0] || {}).executedQty);
+  let qty;
   if (executedQty > 0) {
-    let qty = calcIndicators.getSellAmount(Number(origQty) - executedQty, symbolInfo);
+    qty = calcIndicators.getSellAmount(Number(origQty) - executedQty, symbolInfo);
   } else {
-    let qty = origQty;
+    qty = origQty;
   }
   let stopPrice = calcIndicators.formatPrice(moveClosedPrice * (100 - acceptedLoss) / 100, symbolInfo);
 
@@ -253,7 +254,7 @@ var runMain = async function (nr) {
   }
 
   await main();
-  stateManager.writeState();
+  await stateManager.writeState();
 
   logger.info('scheduling the next run', { interval: interval, nr: nr });
   await timeout(interval);
@@ -288,10 +289,10 @@ var start = async function () {
   exchangeInfo = await publicAPI.getExchangeInfo();
   logger.info('getExchangeInfo is completed');
 
-  if (!stateManager.initState(stateValidity)) {
+  if (!await stateManager.initState(stateValidity)) {
     logger.info('I need to init state, as stored state is not valid');
     await runToInitState();
-    stateManager.writeState();
+    await stateManager.writeState();
   }
   logger.info('initState is completed', { state: stateManager.getState() });
 
@@ -306,7 +307,7 @@ start();
 process.on('SIGINT', async function () {
   await telegramBot.sendMessage('Oh no, my master is killing me...');
   logger.info('Exitting ........................');
-  stateManager.writeState();
+  await stateManager.writeState();
   process.exit();
 });
 
@@ -314,6 +315,6 @@ process.on('SIGINT', async function () {
 process.on('SIGTERM', async function () {
   await telegramBot.sendMessage('SIGTERM .......................');
   logger.info('Exitting SIGTERM ........................');
-  stateManager.writeState();
+  await stateManager.writeState();
   process.exit();
 });

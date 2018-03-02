@@ -14,10 +14,11 @@
   "license": "ISC",
   "dependencies": {
     "axios": "^0.17.1",
-    "dotenv": "^5.0.0",
-    "winston": "^3.0.0-rc1"
+    "winston": "^3.0.0-rc1",
+    "mongodb": "^3.0.3"
   },
   "devDependencies": {
+    "dotenv": "^5.0.0",
     "eslint": "^4.17.0",
     "eslint-config-strongloop": "^2.1.0"
   }
