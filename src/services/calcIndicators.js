@@ -248,7 +248,7 @@ class CalcIndicators {
     let i = this.getLen(minAllowedAmount);
 
     var f = Math.pow(10, i + 1);
-    return Math.floor(balance * f) / f;
+    return Math.round(balance * f) / f;
 
     // return Number(balance).toFixed(i + 1);
   }
