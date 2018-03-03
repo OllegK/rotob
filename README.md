@@ -95,10 +95,12 @@ State is saved into ./state.json
 # 0.2.1.4
 1. Using mongo client for saving the state
 # 0.2.1.5
-1. Small correction in algorithm: moving conditions are checked even in case of sell signal (when not sold). 
+1. Small correction in algorithm: moving conditions are checked even in case of sell signal presense (if not sold). 
 2. Small bugfixing and adjustments for deployment to Heroku.
 # 0.2.2
-1. exitCandleInterval is added
+1. Separate parameters (moveAcceptedLoss and moveLimitAcceptedLoss) for placing the moved stop-loss order.
+2. Ingoring the not convertible minor balances when taking a decission to buy, earlier versions didn't buy a coin in such cases.
+3. Introducing telegram polite messages.
 # Roadmap
 ## TODO
 PREPARATION FOR DEPLOYMENT

@@ -32,8 +32,8 @@ let limitAcceptedLoss = 0.5; // calculated from acceptedLoss
 let hodlCoef = 1.004; // the last close price should be at least 1 percent higher than bought price
 // ----MOVE -----------------------------------------------------------------------------
 let moveCandleInterval = '15m';
-let moveAcceptedLoss = 2; // percentage of allowable less when moving the stop-loss order
-let moveLimitAcceptedLoss = 0.5; // calculated from moveAcceptedLoss
+let moveAcceptedLoss = 0.8; // percentage of allowable less when moving the stop-loss order
+let moveLimitAcceptedLoss = 0.2; // calculated from moveAcceptedLoss
 // --------------------------------------------------------------------------------------
 
 let mySymbols = null;
@@ -218,7 +218,7 @@ var doSell = async function (symbol, myBaseBalance, myBaseBalanceLocked, symbolI
     if ((buyPrice * hodlCoef) > lastClosePrice) {
       logger.info('No sell, this is hodl coin, and buy price was higher',
         { symbol: symbol, buyPrice: buyPrice, lastClosePrice: lastClosePrice, holdCoef: hodlCoef });
-      await telegramBot.sendMessage(
+      await telegramBot.sendPoliteMessage(symbol, 'NOSELL-PRICE',
         `No sell, this is hodl coin - ${symbol}, buy price ${buyPrice}x${hodlCoef} is higher ${lastClosePrice}`);
       return false;
     }

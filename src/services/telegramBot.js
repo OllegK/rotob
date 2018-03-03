@@ -9,6 +9,22 @@ module.exports = new class TelegramBot {
   constructor() {
     this.bot = process.env.BOT;
     this.chatId = process.env.CHAT_ID;
+    this.politeInterval = 180000;
+    this.state = {};
+  }
+
+  getState() {
+    return this.state();
+  }
+
+  canSend(symbol, type) {
+    if (!this.state.hasOwnProperty(symbol)) {
+      this.state[symbol] = {};
+    }
+    if (!this.state[symbol].hasOwnProperty(type)) {
+      return true;
+    }
+    return ((new Date()).getTime() - this.state[symbol][type]) > this.politeInterval;
   }
 
   async sendMessage(msg) {
@@ -26,6 +42,14 @@ module.exports = new class TelegramBot {
       if (err.response) {
         logger.error(err.response.data);
       }
+    }
+  }
+
+  async sendPoliteMessage(symbol, type, msg) {
+    if (this.canSend(symbol, type)) {
+      this.state[symbol][type] = new Date().getTime();
+      msg += `\\This is a polite message, i.e. it will not be repeated for this symbol during ${this.politeInterval}ms`;
+      await this.sendMessage(msg);
     }
   }
 

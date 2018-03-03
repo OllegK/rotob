@@ -37,7 +37,8 @@ class CalcIndicators {
   async checkMove(symbol, moveCandleInterval) {
     // call candles
     let candles = await this.publicAPI.getCandles(symbol, moveCandleInterval, this.green);
-    this.logger.info('(checkMove)call to get candles completed', { length: candles.length, symbol: symbol });
+    this.logger.info('(checkMove)call to get candles completed',
+      { length: candles.length, symbol: symbol, candleInterval: moveCandleInterval });
     this.logger.info(`(checkMove)Candles for ${symbol}`, { candles: candles });
 
     // calculate one green interval
@@ -62,12 +63,13 @@ class CalcIndicators {
     return [isMove, lastClosePrice];
   }
 
-  async calculateSignals(symbol, initRun) {
 
+  async calculateSignals(symbol, initRun) {
     // get the candles
     var candles = await this.publicAPI.getCandles(symbol, this.candleInterval1, this.candlesAmount);
-    this.logger.info('call to get candles completed', { length: candles.length, symbol: symbol });
-    this.logger.info(`Candles for ${symbol}`, { candles: candles });
+    this.logger.info('(calculateSignals)call to get candles completed',
+      { length: candles.length, symbol: symbol, candleInterval: this.candleInterval1 });
+    this.logger.info(`(calculateSignals)Candles for ${symbol}`, { candles: candles });
 
     let lastClosePrice = Number(candles[candles.length - 1][4]); // will be used for comparison
 
@@ -104,6 +106,9 @@ class CalcIndicators {
         return true;
       }
       var candles = await this.publicAPI.getCandles(symbol, this.candleInterval2, this.red);
+      this.logger.info('(2nd)call to get candles completed',
+        { length: candles.length, symbol: symbol, candleInterval: this.candleInterval2 });
+      this.logger.info(`(2nd)Candles for ${symbol}`, { candles: candles });
       var nRed = this.calculateIndicator(candles, 1, this.red);
       var nGreen = this.calculateIndicator(candles, 1, this.green);
       this.logger.info('Indicators for second check are calculated', { symbol: symbol, red: nRed, green: nGreen });
@@ -116,6 +121,9 @@ class CalcIndicators {
           return true;
         }
         candles = await this.publicAPI.getCandles(symbol, this.candleInterval3, this.red);
+        this.logger.info('(3rd)call to get candles completed',
+          { length: candles.length, symbol: symbol, candleInterval: this.candleInterval3 });
+        this.logger.info(`(3rd)Candles for ${symbol}`, { candles: candles });
         nRed = this.calculateIndicator(candles, 1, this.red);
         nGreen = this.calculateIndicator(candles, 1, this.green);
         this.logger.info('Indicators for third check are calculated', { symbol: symbol, red: nRed, green: nGreen });
