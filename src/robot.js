@@ -10,7 +10,7 @@ const stateManager = require('./services/stateManager');
 const PublicAPI = require('./services/publicAPI');
 const PrivateAPI = require('./services/privateAPI');
 
-const version = '0.2.1.5';
+const version = '0.2.2';
 
 // --------------------------------------------------------------------------------------
 let interval = 10000; // value in ms between iterations, sleep time
@@ -18,8 +18,8 @@ let candleInterval1 = '1h'; // candle size for first buy check
 let candleInterval2 = '30m'; // candle size for second buy check
 let candleInterval3 = '15m'; // candle size for second buy check
 let calcValues = 2; // how many indications should be calculated
-let isTestSellOrder = false; // submit an order using test endpoint
-let isTestBuyOrder = false; // submit an order using test endpoint
+let isTestSellOrder = true; // submit an order using test endpoint
+let isTestBuyOrder = true; // submit an order using test endpoint
 let buyCoefficient = 1.0002; // green should be higher by 0.02%
 let sellCoefficient = 1.0002; // red should be higher by 0.02%
 let hodlBought = 600000; // how many ms hodl since buying the bought coin and ignore the sell signal
@@ -264,7 +264,9 @@ var runMain = async function (nr) {
   await timeout(interval);
 
   mySymbols = null; // 0.2.1
-  runMain(nr);
+
+  setTimeout( () => runMain(nr), 0);
+
 };
 
 var runToInitState = async function () {

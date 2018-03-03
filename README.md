@@ -97,6 +97,8 @@ State is saved into ./state.json
 # 0.2.1.5
 1. Small correction in algorithm: moving conditions are checked even in case of sell signal (when not sold). 
 2. Small bugfixing and adjustments for deployment to Heroku.
+# 0.2.2
+1. exitCandleInterval is added
 # Roadmap
 ## TODO
 PREPARATION FOR DEPLOYMENT
@@ -121,3 +123,4 @@ PREPARATION FOR DEPLOYMENT
 15) DON'T SELL IF NOT BOUGHT - CHECK QUANTITY
 16) WSS to learn that cancel order is processed
 17) moving order what happens when moved order is partially fillled and doesn't meet MIN_NOTION condition
+18) Provide the invalidate procedure when intervals are changed in parameters
