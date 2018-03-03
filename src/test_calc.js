@@ -19,62 +19,51 @@ const calcIndicators = new CalcIndicators(
   calcValues, logger, stateManager
 );
 
-var getLen = function(s) { // return the length after that
-  var arr = s.split('.');
-  arr = arr[1].split('1');
-  return arr[0].length;
-}
-
-var getFilter = function(symbolInfo, filterType, value) {
-  var filtered = symbolInfo.filters.filter(elem => filterType === elem.filterType);
-  return filtered[0][value];
-}
-
 var run = async function () {
 
   var myBaseBalance = 0;
   var myBaseBalanceLocked = 0.01953;
   var symbolInfo = {
-    "symbol": "BCCUSDT",
-    "status": "TRADING",
-    "baseAsset": "BCC",
-    "baseAssetPrecision": 8,
-    "quoteAsset": "USDT",
-    "quotePrecision": 8,
-    "orderTypes": [
-      "LIMIT",
-      "LIMIT_MAKER",
-      "MARKET",
-      "STOP_LOSS_LIMIT",
-      "TAKE_PROFIT_LIMIT"
+    symbol: 'BCCUSDT',
+    status: 'TRADING',
+    baseAsset: 'BCC',
+    baseAssetPrecision: 8,
+    quoteAsset: 'USDT',
+    quotePrecision: 8,
+    orderTypes: [
+      'LIMIT',
+      'LIMIT_MAKER',
+      'MARKET',
+      'STOP_LOSS_LIMIT',
+      'TAKE_PROFIT_LIMIT',
     ],
-    "icebergAllowed": true,
-    "filters": [
+    icebergAllowed: true,
+    filters: [
       {
-        "filterType": "PRICE_FILTER",
-        "minPrice": "0.01000000",
-        "maxPrice": "10000000.00000000",
-        "tickSize": "0.01000000"
+        filterType: 'PRICE_FILTER',
+        minPrice: '0.01000000',
+        maxPrice: '10000000.00000000',
+        tickSize: '0.01000000',
       },
       {
-        "filterType": "LOT_SIZE",
-        "minQty": "0.00001000",
-        "maxQty": "10000000.00000000",
-        "stepSize": "0.00001000"
+        filterType: 'LOT_SIZE',
+        minQty: '0.00001000',
+        maxQty: '10000000.00000000',
+        stepSize: '0.00001000',
       },
       {
-        "filterType": "MIN_NOTIONAL",
-        "minNotional": "20.00000000"
-      }
-    ]
+        filterType: 'MIN_NOTIONAL',
+        minNotional: '20.00000000',
+      },
+    ],
   };
 
   if (myBaseBalanceLocked > 0) {
-      myBaseBalance += myBaseBalanceLocked;
+    myBaseBalance += myBaseBalanceLocked;
   }
-  console.log(myBaseBalance)
+  console.log(myBaseBalance);
   var sellAmount = calcIndicators.getSellAmount(myBaseBalance, symbolInfo);
-  console.log(sellAmount)
+  console.log(sellAmount);
 
 };
 

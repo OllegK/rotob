@@ -18,8 +18,8 @@ let candleInterval1 = '1h'; // candle size for first buy check
 let candleInterval2 = '30m'; // candle size for second buy check
 let candleInterval3 = '15m'; // candle size for second buy check
 let calcValues = 2; // how many indications should be calculated
-let isTestSellOrder = true; // submit an order using test endpoint
-let isTestBuyOrder = true; // submit an order using test endpoint
+let isTestSellOrder = false; // submit an order using test endpoint
+let isTestBuyOrder = false; // submit an order using test endpoint
 let buyCoefficient = 1.0002; // green should be higher by 0.02%
 let sellCoefficient = 1.0002; // red should be higher by 0.02%
 let hodlBought = 600000; // how many ms hodl since buying the bought coin and ignore the sell signal
@@ -76,6 +76,8 @@ var main = async function () {
     // check the base asset balance to find if robot needs to sell
     let [myQuoteBalance] = calcIndicators.getBalance(mySymbols, symbolInfo.quoteAsset);
     let [myBaseBalance, myBaseBalanceLocked] = calcIndicators.getBalance(mySymbols, symbolInfo.baseAsset);
+    logger.info('before adjusting balances', { symbol: symbol, myBaseBalance: myBaseBalance });
+    myBaseBalance = calcIndicators.adjustBalanceToMinQty(myBaseBalance, symbolInfo);
     logger.info('................',
       {
         symbol: symbol, myBaseBalance: myBaseBalance, myBaseBalanceLocked: myBaseBalanceLocked,
@@ -265,7 +267,7 @@ var runMain = async function (nr) {
 
   mySymbols = null; // 0.2.1
 
-  setTimeout( () => runMain(nr), 0);
+  setTimeout(() => runMain(nr), 0);
 
 };
 
@@ -311,7 +313,7 @@ start();
 
 // on ctrl+c
 process.on('SIGINT', async function () {
-  console.log('SIGINT...............................')
+  console.log('SIGINT...............................');
   await telegramBot.sendMessage('Oh no, my master is killing me...');
   logger.info('Exitting ........................');
   await stateManager.writeState();
@@ -320,7 +322,7 @@ process.on('SIGINT', async function () {
 
 // on kill pid
 process.on('SIGTERM', async function () {
-  console.log('sigterm...............................')
+  console.log('sigterm...............................');
   await stateManager.writeState();
   await telegramBot.sendMessage('SIGTERM .......................');
   process.exit();

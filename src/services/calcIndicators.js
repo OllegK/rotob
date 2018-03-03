@@ -173,6 +173,11 @@ class CalcIndicators {
     throw new Error('Not found info about pair....' + symbol);
   };
 
+  adjustBalanceToMinQty(myBaseBalance, symbolInfo) { // this is to ignore small not convertible amounts
+    let minAllowedAmount = this.getFilter(symbolInfo, 'LOT_SIZE', 'minQty');
+    return +myBaseBalance < +minAllowedAmount ? 0 : myBaseBalance;
+  }
+
   getBalance(mySymbols, asset) {
     for (var i = 0; i < mySymbols.length; i++) {
       if (asset === mySymbols[i].asset) {
