@@ -26,10 +26,10 @@ let hodlBought = 600000; // how many ms hodl since buying the bought coin and ig
 // too short could cause the buy signal ignoring? VVV
 let buySignalIsValid = 10000; // how many ms the buy signal is valid; could be set to 0 to prevent any buy
 let stateValidity = 300000; // how many ms the stored state is valid, if not valid the state will be reset ({})
-let placeStopLoss = true; // please stop-loss order when bought
+let placeStopLoss = false; // please stop-loss order when bought
 let acceptedLoss = 2; // percentage of allowable less when placing the stop-loss order
 let limitAcceptedLoss = 0.5; // calculated from acceptedLoss
-let hodlCoef = 1.004; // the last close price should be at least 1 percent higher than bought price
+let hodlCoef = 1.02; // the last close price should be at least 1 percent higher than bought price
 // ----MOVE -----------------------------------------------------------------------------
 let moveCandleInterval = '15m';
 let moveAcceptedLoss = 0.8; // percentage of allowable less when moving the stop-loss order
@@ -209,10 +209,10 @@ var doSell = async function (symbol, myBaseBalance, myBaseBalanceLocked, symbolI
     let buyPrice = stateManager.getBuyPrice(symbol);
     logger.info('Buy price is gotten', { symbol: symbol, buyPrice: buyPrice, lastClosePrice: lastClosePrice });
     if (0 === buyPrice) {
-      // logger.info('No sell, this is hodl coin, and buy price is not found',
-      //  { symbol: symbol, lastClosePrice: lastClosePrice });
-      // await telegramBot.sendMessage(
-      //  `No sell, this is hodl coin - ${symbol}, and buy price is not found, ${lastClosePrice}`);
+       logger.info('No sell, this is hodl coin, and buy price is not found',
+        { symbol: symbol, lastClosePrice: lastClosePrice });
+       await telegramBot.sendMessage(
+        `No sell, this is hodl coin - ${symbol}, and buy price is not found, ${lastClosePrice}`);
       return false;
     }
     if ((buyPrice * hodlCoef) > lastClosePrice) {
