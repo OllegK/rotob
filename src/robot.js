@@ -32,6 +32,8 @@ let limitAcceptedLoss = 0.5; // calculated from acceptedLoss
 let hodlCoef = 1.004; // the last close price should be at least 1 percent higher than bought price
 // ----MOVE -----------------------------------------------------------------------------
 let moveCandleInterval = '15m';
+let moveAcceptedLoss = 2; // percentage of allowable less when moving the stop-loss order
+let moveLimitAcceptedLoss = 0.5; // calculated from moveAcceptedLoss
 // --------------------------------------------------------------------------------------
 
 let mySymbols = null;
@@ -112,7 +114,7 @@ var doMove = async function (symbol, symbolInfo, moveClosedPrice) {
   } else {
     qty = origQty;
   }
-  let stopPrice = calcIndicators.formatPrice(moveClosedPrice * (100 - acceptedLoss) / 100, symbolInfo);
+  let stopPrice = calcIndicators.formatPrice(moveClosedPrice * (100 - moveAcceptedLoss) / 100, symbolInfo);
 
   logger.info('(doMove) all variables are calculated', {
     symbol: symbol, oldStopPrice: oldStopPrice, origQty: origQty,
@@ -131,7 +133,7 @@ var doMove = async function (symbol, symbolInfo, moveClosedPrice) {
     let cancelResponse = await privateAPI.cancelOrder(symbol, orderId);
     logger.info('(doMove)The response from cancelling order', { response: cancelResponse.data });
 
-    let limitStopPrice = calcIndicators.formatPrice(stopPrice * (100 - limitAcceptedLoss) / 100, symbolInfo);
+    let limitStopPrice = calcIndicators.formatPrice(stopPrice * (100 - moveLimitAcceptedLoss) / 100, symbolInfo);
     if (calcIndicators.checkMinNotion(limitStopPrice, qty, symbolInfo)) {
       logger.info('(doMove) The stop prices are calculated', { stopPrice: stopPrice, limitStopPrice: limitStopPrice });
       let stopResponse =
