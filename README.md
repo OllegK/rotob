@@ -93,9 +93,10 @@ State is saved into ./state.json
 # 0.2.1.3
 1. First version of moveable stop loss order
 # 0.2.1.4
-1. Mongo client
+1. Using mongo client for saving the state
 # 0.2.1.5
-1. Small correction in algorithm: moving conditions are checked even in case of sell signal (when not sold).
+1. Small correction in algorithm: moving conditions are checked even in case of sell signal (when not sold). 
+2. Small bugfixing and adjustments for deployment to Heroku.
 # Roadmap
 ## TODO
 PREPARATION FOR DEPLOYMENT
@@ -119,5 +120,4 @@ PREPARATION FOR DEPLOYMENT
 14) if there is a balance, robot never buys?
 15) DON'T SELL IF NOT BOUGHT - CHECK QUANTITY
 16) WSS to learn that cancel order is processed
-17) Exit could be checked on another candle interval then enter
-18) moving order what happens when moved order is partially fillled and doesn't meet MIN_NOTION condition
+17) moving order what happens when moved order is partially fillled and doesn't meet MIN_NOTION condition
