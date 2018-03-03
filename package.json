@@ -8,6 +8,7 @@
     "start": "node ./src/robot.js",
     "start_dev": "npm run lint && node ./src/robot.js",
     "start_test": "node ./src/test_privAPI.js",
+    "start_calc": "node ./src/test_calc.js",
     "lint": "eslint --ignore-path .gitignore ./src --ext .js"
   },
   "author": "",

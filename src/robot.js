@@ -309,6 +309,7 @@ start();
 
 // on ctrl+c
 process.on('SIGINT', async function () {
+  console.log('SIGINT...............................')
   await telegramBot.sendMessage('Oh no, my master is killing me...');
   logger.info('Exitting ........................');
   await stateManager.writeState();
@@ -317,8 +318,8 @@ process.on('SIGINT', async function () {
 
 // on kill pid
 process.on('SIGTERM', async function () {
-  await telegramBot.sendMessage('SIGTERM .......................');
-  logger.info('Exitting SIGTERM ........................');
+  console.log('sigterm...............................')
   await stateManager.writeState();
+  await telegramBot.sendMessage('SIGTERM .......................');
   process.exit();
 });
