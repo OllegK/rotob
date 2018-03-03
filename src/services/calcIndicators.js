@@ -63,7 +63,6 @@ class CalcIndicators {
     return [isMove, lastClosePrice];
   }
 
-
   async calculateSignals(symbol, initRun) {
     // get the candles
     var candles = await this.publicAPI.getCandles(symbol, this.candleInterval1, this.candlesAmount);

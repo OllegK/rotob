@@ -12,7 +12,6 @@ var run = async function () {
   await timeout(121000);
   await telegramBot.sendPoliteMessage('111', '222', 'Message 3 should NOT be skipped.');
 
-
 };
 
 run();
