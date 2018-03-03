@@ -9,7 +9,7 @@ module.exports = new class TelegramBot {
   constructor() {
     this.bot = process.env.BOT;
     this.chatId = process.env.CHAT_ID;
-    this.politeInterval = 180000;
+    this.politeInterval = 600000;
     this.state = {};
   }
 

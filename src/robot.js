@@ -29,7 +29,7 @@ let stateValidity = 300000; // how many ms the stored state is valid, if not val
 let placeStopLoss = false; // please stop-loss order when bought
 let acceptedLoss = 2; // percentage of allowable less when placing the stop-loss order
 let limitAcceptedLoss = 0.5; // calculated from acceptedLoss
-let hodlCoef = 1.02; // the last close price should be at least 1 percent higher than bought price
+let hodlCoef = 1.012; // the last close price should be at least 1 percent higher than bought price
 // ----MOVE -----------------------------------------------------------------------------
 let moveCandleInterval = '15m';
 let moveAcceptedLoss = 0.8; // percentage of allowable less when moving the stop-loss order
