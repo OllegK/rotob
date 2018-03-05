@@ -5,7 +5,8 @@ const PublicAPI = require('./publicAPI');
 class CalcIndicators {
 
   constructor(buyCoefficient, sellCoefficient, candleInterval1,
-    candleInterval2, candleInterval3, calcValues, logger, stateManager) {
+    candleInterval2, candleInterval3, candleInterval4,
+    calcValues, logger, stateManager) {
     this.red = 8;
     this.green = 4;
     this.buyCoefficient = buyCoefficient;
@@ -96,44 +97,38 @@ class CalcIndicators {
     return [isSellSignal, isBuySignal, arrGreen[0], lastClosePrice];
   }
 
-  async isSecondaryBuyCheck() {
-
+  async isSecondaryBuyCheck(symbol, candleInterval, ordinal) {
+    var candles = await this.publicAPI.getCandles(symbol, candleInterval, this.red);
+    this.logger.info(`(${ordinal})call to get candles completed`,
+      { length: candles.length, symbol: symbol, candleInterval: candleInterval });
+    this.logger.info(`(${ordinal})Candles for ${symbol}`, { candles: candles });
+    var nRed = this.calculateIndicator(candles, 1, this.red);
+    var nGreen = this.calculateIndicator(candles, 1, this.green);
+    this.logger.info(`${ordinal}Indicators are calculated`, { symbol: symbol, red: nRed, green: nGreen });
+    return (nGreen > nRed);
   }
 
   async isBuySignal(symbol, arrRed, arrGreen) {
     if (this.isFirstBuyCheck(arrRed, arrGreen)) {
       this.logger.info('first buy indicator IS GOT', { symbol: symbol, red: arrRed, green: arrGreen });
-      // await telegramBot.sendMessage(`I got first buy indicator for ${symbol}`);
-      if (this.candleInterval1 === this.candleInterval2) { // skipping the second check
+      if (this.candleInterval1 === this.candleInterval2) {
         this.logger.info('Checking the second buy indicator is skipped as candle intervals are the same',
           { symbol: symbol, candleInterval: this.candleInterval1 });
         return true;
       }
-      var candles = await this.publicAPI.getCandles(symbol, this.candleInterval2, this.red);
-      this.logger.info('(2nd)call to get candles completed',
-        { length: candles.length, symbol: symbol, candleInterval: this.candleInterval2 });
-      this.logger.info(`(2nd)Candles for ${symbol}`, { candles: candles });
-      var nRed = this.calculateIndicator(candles, 1, this.red);
-      var nGreen = this.calculateIndicator(candles, 1, this.green);
-      this.logger.info('Indicators for second check are calculated', { symbol: symbol, red: nRed, green: nGreen });
-      if (nGreen > nRed) {
-        this.logger.info('second buy indicator IS GOT', { symbol: symbol, red: nRed, green: nGreen });
-        // await telegramBot.sendMessage(`I got second buy indicator for ${symbol}`);
-        if (this.candleInterval2 === this.candleInterval3) { // skipping the 3rd check
+      if (this.isSecondaryBuyCheck(symbol, this.candleInterval2, '2nd')) {
+        if (this.candleInterval2 === this.candleInterval3) {
           this.logger.info('Checking the third buy indicator is skipped as candle intervals are the same',
             { symbol: symbol, candleInterval: this.candleInterval2 });
           return true;
         }
-        candles = await this.publicAPI.getCandles(symbol, this.candleInterval3, this.red);
-        this.logger.info('(3rd)call to get candles completed',
-          { length: candles.length, symbol: symbol, candleInterval: this.candleInterval3 });
-        this.logger.info(`(3rd)Candles for ${symbol}`, { candles: candles });
-        nRed = this.calculateIndicator(candles, 1, this.red);
-        nGreen = this.calculateIndicator(candles, 1, this.green);
-        this.logger.info('Indicators for third check are calculated', { symbol: symbol, red: nRed, green: nGreen });
-        if (nGreen > nRed) {
-          this.logger.info('third buy indicator IS GOT', { symbol: symbol, red: nRed, green: nGreen });
-          return true;
+        if (this.isSecondaryBuyCheck(symbol, this.candleInterval3, '3rd')) {
+          if (this.candleInterval3 === this.candleInterval4) {
+            this.logger.info('Checking the fourth buy indicator is skipped as candle intervals are the same',
+              { symbol: symbol, candleInterval: this.candleInterval3 });
+            return true;
+          }
+          return (this.isSecondaryBuyCheck(symbol, this.candleInterval4, '4th'));
         }
       }
     }
@@ -227,13 +222,14 @@ class CalcIndicators {
   // (myQuoteBalance, limitToBuy, symbolInfo, nGreen)
   getBuyAmount(balance, limitToSpent, symbolInfo, avgPrice) {
     let minAllowedAmount = this.getFilter(symbolInfo, 'LOT_SIZE', 'minQty');
-    let minNotional = this.getFilter(symbolInfo, 'MIN_NOTIONAL', 'minNotional');
+    // let minNotional = this.getFilter(symbolInfo, 'MIN_NOTIONAL', 'minNotional');
     if (minAllowedAmount > 0) {
-      let toBeSpent = Math.min(balance * 0.95, limitToSpent); // 0.95 is multiplied trying to avoid -2010
+      // 0.95 is multiplied trying to avoid -2010 when not insufficent funds
+      let toBeSpent = Math.min(balance * 0.95, limitToSpent);
 
-      if (toBeSpent < minNotional) { // for stop-loss
-        return [0, 0];
-      }
+      // if (toBeSpent < minNotional) {
+      // return [0, 0];
+      // }
 
       let toBuy = (toBeSpent / avgPrice);
       toBuy = (Math.floor(toBuy / minAllowedAmount) * minAllowedAmount).toFixed(8);

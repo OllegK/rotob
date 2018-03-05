@@ -30,7 +30,7 @@ let stateValidity = 300000; // how many ms the stored state is valid, if not val
 let placeStopLoss = false; // please stop-loss order when bought
 let acceptedLoss = 2; // percentage of allowable less when placing the stop-loss order
 let limitAcceptedLoss = 0.1; // calculated from acceptedLoss
-let hodlCoef = 1.006; // the last close price should be at least 1 percent higher than bought price
+let hodlCoef = 1.009; // the last close price should be at least 1 percent higher than bought price
 // ----MOVE -----------------------------------------------------------------------------
 let moveCandleInterval = '15m';
 let moveAcceptedLoss = 0.8; // percentage of allowable less when moving the stop-loss order
@@ -148,15 +148,27 @@ var doMove = async function (symbol, symbolInfo, moveClosedPrice) {
     }
   }
 };
-
 var doBuy = async function (symbol, myQuoteBalance, limitToSpent, symbolInfo, timestamp, lastClosePrice, nGreen) {
   // logger.info ('do buy arguments', arguments);
+
   if ((timestamp - stateManager.getBuySignalTime(symbol)) >= buySignalIsValid) {
     logger.info('BUY SIGNAL IS NOT FRESH ENOUGH', { symbol: symbol });
     // await telegramBot.sendMessage(`I am NOT going to buy ${symbol}, as this buy signal is not fresh anymore`);
     return;
   }
   var [spentAmount, buyAmount] = calcIndicators.getBuyAmount(myQuoteBalance, limitToSpent, symbolInfo, lastClosePrice);
+  // check min notional
+  if ((buyAmount > 0) && placeStopLoss) {
+    let stopPrice = (spentAmount / buyAmount) * (100 - acceptedLoss) / 100;
+    let limitStopPrice = stopPrice * (100 - limitAcceptedLoss) / 100;
+    if (!calcIndicators.checkMinNotion(limitStopPrice, buyAmount, symbolInfo)) {
+      logger.info('check min notion is applied before buying and it is false', {
+        spentAmount: spentAmount, buyAmount: buyAmount, stopPrice: stopPrice,
+        limitStopPrice: limitStopPrice, acceptedLoss: acceptedLoss, limitAcceptedLoss: limitAcceptedLoss,
+      });
+      buyAmount = 0;
+    }
+  }
   if (buyAmount > 0) {
     logger.info('calculated buyAmount',
       {
@@ -206,9 +218,9 @@ var doSell = async function (symbol, myBaseBalance, myBaseBalanceLocked, symbolI
     let buyPrice = stateManager.getBuyPrice(symbol);
     logger.info('Buy price is gotten', { symbol: symbol, buyPrice: buyPrice, lastClosePrice: lastClosePrice });
     if (0 === buyPrice) {
-       logger.info('No sell, this is hodl coin, and buy price is not found',
+      logger.info('No sell, this is hodl coin, and buy price is not found',
         { symbol: symbol, lastClosePrice: lastClosePrice });
-       await telegramBot.sendMessage(
+      await telegramBot.sendMessage(
         `No sell, this is hodl coin - ${symbol}, and buy price is not found, ${lastClosePrice}`);
       return false;
     }

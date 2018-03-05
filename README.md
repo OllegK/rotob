@@ -105,6 +105,7 @@ State is saved into ./state.json
 1. Improved error handling and logging
 2. active attribute is removed from symbols
 3. Added candleInterval4
+4. More sophisticated check for min notional limit before buying (hopefully no bugs there)
 # Roadmap
 ## Release 0.3
 0) Moveable stop-loss (Denis' zagogulina, crossing the falling candle).
