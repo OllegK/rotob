@@ -43,7 +43,7 @@ module.exports = new class TelegramBot {
         logger.error(err.response.data);
         console.log(err.response.data);
       } else {
-        console.log(err)
+        console.log(err);
       }
     }
   }
