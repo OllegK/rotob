@@ -13,6 +13,7 @@ class CalcIndicators {
     this.candleInterval1 = candleInterval1;
     this.candleInterval2 = candleInterval2;
     this.candleInterval3 = candleInterval3;
+    this.candleInterval4 = candleInterval4;
     this.calcValues = calcValues;
     this.candlesAmount = this.calcValues + this.red - 1; // this.calcValues * this.red;
     this.logger = logger;
@@ -93,6 +94,10 @@ class CalcIndicators {
     await this.stateManager.storeSignals(symbol, isSellSignal, isBuySignal, arrGreen[0], initRun);
 
     return [isSellSignal, isBuySignal, arrGreen[0], lastClosePrice];
+  }
+
+  async isSecondaryBuyCheck() {
+
   }
 
   async isBuySignal(symbol, arrRed, arrGreen) {

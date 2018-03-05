@@ -10,13 +10,14 @@ const stateManager = require('./services/stateManager');
 const PublicAPI = require('./services/publicAPI');
 const PrivateAPI = require('./services/privateAPI');
 
-const version = '0.2.2';
+const version = '0.2.2.1';
 
 // --------------------------------------------------------------------------------------
 let interval = 10000; // value in ms between iterations, sleep time
 let candleInterval1 = '1h'; // candle size for first buy check
 let candleInterval2 = '30m'; // candle size for second buy check
-let candleInterval3 = '15m'; // candle size for second buy check
+let candleInterval3 = '15m'; // candle size for third buy check
+let candleInterval4 = '2h'; // candle size for 4th buy check
 let calcValues = 2; // how many indications should be calculated
 let isTestSellOrder = false; // submit an order using test endpoint
 let isTestBuyOrder = false; // submit an order using test endpoint
@@ -28,8 +29,8 @@ let buySignalIsValid = 10000; // how many ms the buy signal is valid; could be s
 let stateValidity = 300000; // how many ms the stored state is valid, if not valid the state will be reset ({})
 let placeStopLoss = false; // please stop-loss order when bought
 let acceptedLoss = 2; // percentage of allowable less when placing the stop-loss order
-let limitAcceptedLoss = 0.5; // calculated from acceptedLoss
-let hodlCoef = 1.012; // the last close price should be at least 1 percent higher than bought price
+let limitAcceptedLoss = 0.1; // calculated from acceptedLoss
+let hodlCoef = 1.006; // the last close price should be at least 1 percent higher than bought price
 // ----MOVE -----------------------------------------------------------------------------
 let moveCandleInterval = '15m';
 let moveAcceptedLoss = 0.8; // percentage of allowable less when moving the stop-loss order
@@ -45,7 +46,7 @@ const timeout = ms => new Promise(res => setTimeout(res, ms));
 
 const calcIndicators = new CalcIndicators(
   buyCoefficient, sellCoefficient,
-  candleInterval1, candleInterval2, candleInterval3,
+  candleInterval1, candleInterval2, candleInterval3, candleInterval4,
   calcValues, logger, stateManager
 );
 const privateAPI = new PrivateAPI(logger, stateManager, timeDifference);
@@ -54,10 +55,6 @@ const publicAPI = new PublicAPI(logger);
 var main = async function () {
 
   for (var i = 0; i < symbols.length; i++) {
-
-    if ('Y' !== symbols[i].active) {
-      continue;
-    }
 
     if (mySymbols === null) {
       logger.info('mySymbols is null, calling the getAccount', {});

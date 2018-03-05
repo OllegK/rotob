@@ -101,9 +101,11 @@ State is saved into ./state.json
 1. Separate parameters (moveAcceptedLoss and moveLimitAcceptedLoss) for placing the moved stop-loss order.
 2. Ingoring the not convertible minor balances when taking a decission to buy, earlier versions didn't buy a coin in such cases.
 3. Introducing telegram polite messages.
+# 0.2.2.1
+1. Improved error handling and logging
+2. active attribute is removed from symbols
+3. Added candleInterval4
 # Roadmap
-## TODO
-PREPARATION FOR DEPLOYMENT
 ## Release 0.3
 0) Moveable stop-loss (Denis' zagogulina, crossing the falling candle).
 ## Future possible improvements

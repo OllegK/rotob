@@ -37,10 +37,13 @@ module.exports = new class TelegramBot {
         },
       });
     } catch (err) {
-      console.log(err);
+      console.log('Error sending telegram message');
       logger.error('Error sending telegram message', err);
       if (err.response) {
         logger.error(err.response.data);
+        console.log(err.response.data);
+      } else {
+        console.log(err)
       }
     }
   }

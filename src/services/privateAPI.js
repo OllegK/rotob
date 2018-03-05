@@ -11,7 +11,7 @@ axios.defaults.baseURL = 'https://api.binance.com/api/v3';
 const crypto = require('crypto');
 
 const timeout = ms => new Promise(res => setTimeout(res, ms));
-const intervals = [100, 500, 1000, 3000, 5000, 10000, 20000, 30000, 60000, 120000, 180000];
+const intervals = [1000, 3000, 5000, 10000, 20000, 30000, 60000, 120000, 180000, 300000, 600000];
 
 class PrivateAPI {
 
@@ -49,7 +49,8 @@ class PrivateAPI {
         });
         return response.data;
       } catch (err) {
-        console.log(err);
+        console.log('Error calling open orders');
+        console.log(err.response ? err.response.data : err);
         this.logger.error('Error calling open orders', err.response ? err.response.data : err);
         if (i === intervals.length - 1) {
           await telegramBot.sendMessage(
@@ -84,7 +85,8 @@ class PrivateAPI {
         });
         return response.data.balances;
       } catch (err) {
-        console.log(err);
+        console.log('Error calling get Account');
+        console.log(err.response ? err.response.data : err);
         this.logger.error('Error calling getAccount', err.response ? err.response.data : err);
         if (i === intervals.length - 1) {
           await telegramBot.sendMessage(
@@ -128,8 +130,9 @@ class PrivateAPI {
           },
         });
       } catch (err) {
-        console.log(err);
-        console.log(`Waiting ${intervals[i]}ms before retry, attempt ${i + 1}`);
+        console.log('Error cancelling order');
+        console.log(err.response ? err.response.data : err);
+        // console.log(`Waiting ${intervals[i]}ms before retry, attempt ${i + 1}`);
         this.logger.error('Error placing the cancel order', {err: err.response ? err.response.data : err});
         if (i === intervals.length - 1) {
           await telegramBot.sendMessage(
@@ -184,8 +187,9 @@ class PrivateAPI {
           },
         });
       } catch (err) {
-        console.log(err);
-        console.log(`Waiting ${intervals[i]}ms before retry, attempt ${i + 1}`);
+        console.log('Error placing order');
+        console.log(err.response ? err.response.data : err);
+        // console.log(`Waiting ${intervals[i]}ms before retry, attempt ${i + 1}`);
         this.logger.error('Error placing the order', {err: err.response ? err.response.data : err});
         if (i === intervals.length - 1) {
           await telegramBot.sendMessage(
