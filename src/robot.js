@@ -86,7 +86,7 @@ var main = async function () {
       logger.info('Selling ................', { symbol: symbol });
       var isSold = await doSell(
         symbol, myBaseBalance, myBaseBalanceLocked, symbolInfo, timestamp, lastClosePrice, symbols[i].isHodl);
-      if (!isSold && (myBaseBalanceLocked > 0)) {
+      if (!isSold && (myBaseBalanceLocked > 0) && placeStopLoss) {
         let [isMove, moveClosedPrice] = await calcIndicators.checkMove(symbol, moveCandleInterval);
         if (isMove) {
           doMove(symbol, symbolInfo, moveClosedPrice);

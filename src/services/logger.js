@@ -11,7 +11,7 @@ var init = function () {
     logDirectory = '/tmp';
     console.log('logDirectory is /tmp');
 
-    fs.writeFileSync("/tmp/test.txt", "Hey there!");
+    //fs.writeFileSync("/tmp/test.txt", "Hey there!");
 
   } else {
     logDirectory = './logs';
