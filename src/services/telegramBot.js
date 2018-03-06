@@ -56,7 +56,4 @@ module.exports = new class TelegramBot {
     }
   }
 
-  // https://api.telegram.org/bot437516306:AAEusnPwYEWnBWPmHyhiSN3tuOcuThG_4fQ/
-  // sendMessage?chat_id=384438001&parse_mode=html&text=test1234
-
 };

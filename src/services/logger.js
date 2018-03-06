@@ -6,8 +6,13 @@ const fs = require('fs');
 
 var init = function () {
 
-
-  fs.mkdir('./logs', () => { });
+  let logDirectory;
+  if (process.env.NODE_ENV === 'production') {
+    logDirectory = '/tmp';
+  } else {
+    logDirectory = './logs';
+    fs.mkdir(logDirectory, () => { });
+  }
 
   const logger = createLogger({
     format: combine(
@@ -44,13 +49,13 @@ var init = function () {
     ),
     transports: [
       new transports.File({
-        filename: './logs/output.log',
+        filename: `${logDirectory}/output.log`,
         maxsize: 1024 * 1024 * 50,
         maxFiles: 999,
         tailable: true,
       }),
       new transports.File({
-        filename: './logs/error.log',
+        filename: `${logDirectory}/error.log`,
         level: 'error',
       }),
     ],

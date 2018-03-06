@@ -187,11 +187,15 @@ class CalcIndicators {
 
   getBalance(mySymbols, asset) {
     for (var i = 0; i < mySymbols.length; i++) {
-      if (asset === mySymbols[i].asset) {
+      if (asset === mySymbols[i].asset) { // got from rest
         return [Number(mySymbols[i].free), Number(mySymbols[i].locked)];
       }
+      if (asset === mySymbols[i].a) { // updated from WSS
+        return [Number(mySymbols[i].f), Number(mySymbols[i].l)];
+      }
     }
-    throw new Error('Not found info about asset....' + asset);
+    //throw new Error('Not found info about asset....' + asset);
+    return [0, 0];
   };
 
   getLen(s) { // return the length after that
