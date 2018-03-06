@@ -1,7 +1,7 @@
 'use strict';
 
 const axios = require('axios');
-const logger = require('./logger').init();
+// const logger = require('./logger').init();
 
 
 module.exports = new class TelegramBot {
@@ -38,9 +38,9 @@ module.exports = new class TelegramBot {
       });
     } catch (err) {
       console.log('Error sending telegram message');
-      logger.error('Error sending telegram message', err);
+      // logger.error('Error sending telegram message', err);
       if (err.response) {
-        logger.error(err.response.data);
+      //  logger.error(err.response.data);
         console.log(err.response.data);
       } else {
         console.log(err);
