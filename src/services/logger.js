@@ -10,6 +10,9 @@ var init = function () {
   if (process.env.NODE_ENV === 'production') {
     logDirectory = '/tmp';
     console.log('logDirectory is /tmp');
+
+    fs.writeFileSync("/tmp/test.txt", "Hey there!");
+
   } else {
     logDirectory = './logs';
     fs.mkdir(logDirectory, () => { });
