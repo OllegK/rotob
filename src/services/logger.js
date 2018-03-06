@@ -9,6 +9,7 @@ var init = function () {
   let logDirectory;
   if (process.env.NODE_ENV === 'production') {
     logDirectory = '/tmp';
+    console.log('logDirectory is /tmp');
   } else {
     logDirectory = './logs';
     fs.mkdir(logDirectory, () => { });
