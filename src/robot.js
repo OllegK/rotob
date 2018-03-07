@@ -12,7 +12,7 @@ const PrivateAPI = require('./services/privateAPI');
 const BinanceWss = require('./services/BinanceWss');
 const BinanceRest = require('./services/BinanceRest');
 
-const version = '0.2.2.1';
+const version = '0.2.2.2';
 
 // --------------------------------------------------------------------------------------
 let interval = 10000; // value in ms between iterations, sleep time
@@ -57,7 +57,10 @@ const timeout = ms => new Promise(res => setTimeout(res, ms));
 const processWssUpdate = async (msg) => {
   if ('outboundAccountInfo' === msg.e) {
     mySymbols = msg.B;
-    let arr = msg.B.filter(el => (el.f > 0 || el.l > 0)).map(el => JSON.stringify(el));
+    let arr = msg.B
+      .filter(el => (el.f > 0 || el.l > 0))
+      .map(el => `${el.a}:${el.f}${el.l > 0 ? '|' + el.l : '' }`)
+      .join('|');
     await telegramBot.sendMessage('Update account info is received - ' + JSON.stringify(arr));
     console.log(`RECEIVED ACCOUNT UPDATE: ${JSON.stringify(arr)}`);
   } else if ('executionReport' === msg.e) {
