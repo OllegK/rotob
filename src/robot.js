@@ -9,6 +9,8 @@ const CalcIndicators = require('./services/calcIndicators');
 const stateManager = require('./services/stateManager');
 const PublicAPI = require('./services/publicAPI');
 const PrivateAPI = require('./services/privateAPI');
+const BinanceWss = require('./services/BinanceWss');
+const BinanceRest = require('./services/BinanceRest');
 
 const version = '0.2.2.1';
 
@@ -37,12 +39,10 @@ let moveAcceptedLoss = 0.8; // percentage of allowable less when moving the stop
 let moveLimitAcceptedLoss = 0.2; // calculated from moveAcceptedLoss
 // --------------------------------------------------------------------------------------
 
-let mySymbols = null;
+let mySymbols;
 let exchangeInfo;
 let timeDifference = 0;
 let symbols = require('./symbols').returnSymbols();
-
-const timeout = ms => new Promise(res => setTimeout(res, ms));
 
 const calcIndicators = new CalcIndicators(
   buyCoefficient, sellCoefficient,
@@ -52,14 +52,23 @@ const calcIndicators = new CalcIndicators(
 const privateAPI = new PrivateAPI(logger, stateManager, timeDifference);
 const publicAPI = new PublicAPI(logger);
 
+const timeout = ms => new Promise(res => setTimeout(res, ms));
+
+const processWssUpdate = async (msg) => {
+  if ('outboundAccountInfo' === msg.e) {
+    mySymbols = msg.B;
+    let arr = msg.B.filter(el => (el.f > 0 || el.l > 0)).map(el => JSON.stringify(el));
+    await telegramBot.sendMessage('Update account info is received - ' + JSON.stringify(arr));
+    console.log(`RECEIVED ACCOUNT UPDATE: ${JSON.stringify(arr)}`);
+  } else if ('executionReport' === msg.e) {
+    await telegramBot.sendMessage(JSON.stringify(msg));
+    console.log(JSON.stringify(msg));
+  }
+};
+
 var main = async function () {
 
   for (var i = 0; i < symbols.length; i++) {
-
-    if (mySymbols === null) {
-      logger.info('mySymbols is null, calling the getAccount', {});
-      mySymbols = await privateAPI.getAccount();
-    }
 
     var symbol = symbols[i].symbol;
     var limitToSpent = symbols[i].limitToSpent;
@@ -196,7 +205,6 @@ var doBuy = async function (symbol, myQuoteBalance, limitToSpent, symbolInfo, ti
           `MIN_NOTION failure for ${symbol}, limitStopPrice: ${limitStopPrice}, amount: ${buyAmount}`);
       }
     }
-    mySymbols = null;
   } else {
     logger.info('no buy, buy amount is 0',
       { quoteAsset: symbolInfo.quoteAsset, myQuoteBalance: myQuoteBalance });
@@ -252,7 +260,6 @@ var doSell = async function (symbol, myBaseBalance, myBaseBalanceLocked, symbolI
     await telegramBot.sendMessage(
       `I am going to place sell order for ${symbol}, sell amount:${sellAmount}, last close price:${lastClosePrice}`);
     await privateAPI.placeMarketSellOrder(symbol, sellAmount, isTestSellOrder);
-    mySymbols = null;
     return true;
   }
 };
@@ -273,8 +280,6 @@ var runMain = async function (nr) {
 
   logger.info('scheduling the next run', { interval: interval, nr: nr });
   await timeout(interval);
-
-  mySymbols = null; // 0.2.1
 
   setTimeout(() => runMain(nr), 0);
 
@@ -313,6 +318,11 @@ var start = async function () {
   }
   logger.info('initState is completed', { state: stateManager.getState() });
 
+  logger.info('calling the getAccount');
+  mySymbols = await privateAPI.getAccount();
+
+  let listenKey = await (new BinanceRest()).createListenKey();
+  await (new BinanceWss(listenKey)).start(processWssUpdate);
 
   let iterations = 0;
   runMain(iterations);
@@ -323,15 +333,15 @@ start();
 // on ctrl+c
 process.on('SIGINT', async function () {
   console.log('SIGINT...............................');
+  await stateManager.writeState();
   await telegramBot.sendMessage('Oh no, my master is killing me...');
   logger.info('Exitting ........................');
-  await stateManager.writeState();
   process.exit();
 });
 
 // on kill pid
 process.on('SIGTERM', async function () {
-  console.log('sigterm...............................');
+  console.log('SIGTERM...............................');
   await stateManager.writeState();
   await telegramBot.sendMessage('SIGTERM .......................');
   process.exit();

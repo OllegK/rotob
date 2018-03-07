@@ -194,7 +194,7 @@ class CalcIndicators {
         return [Number(mySymbols[i].f), Number(mySymbols[i].l)];
       }
     }
-    //throw new Error('Not found info about asset....' + asset);
+    // throw new Error('Not found info about asset....' + asset);
     return [0, 0];
   };
 
