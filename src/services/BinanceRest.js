@@ -33,7 +33,8 @@ class BinanceRest {
         setInterval(() => this.keepAliveUserStream(), this.keepAliveInterval);
       return this.listenKey;
     } catch (err) {
-      console.log(err);
+      console.log('Error create listen key');
+      console.log(err.response ? err.response.data : err);
       throw new Error(err);
     }
   }
@@ -52,7 +53,8 @@ class BinanceRest {
         },
       });
     } catch (err) {
-      console.log(err);
+      console.log('Error keepAliveUserStream');
+      console.log(err.response ? err.response.data : err);
       throw new Error(err);
     }
   }
@@ -71,7 +73,8 @@ class BinanceRest {
         },
       });
     } catch (err) {
-      console.log(err);
+      console.log('Error deleteUserStream');
+      console.log(err.response ? err.response.data : err);
       throw new Error(err);
     }
   }
