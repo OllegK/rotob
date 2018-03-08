@@ -29,7 +29,7 @@ let hodlBought = 600000; // how many ms hodl since buying the bought coin and ig
 // too short could cause the buy signal ignoring? VVV
 let buySignalIsValid = 10000; // how many ms the buy signal is valid; could be set to 0 to prevent any buy
 let stateValidity = 300000; // how many ms the stored state is valid, if not valid the state will be reset ({})
-let placeStopLoss = false; // please stop-loss order when bought
+// let placeStopLoss = false; // please stop-loss order when bought // move to symbols
 let acceptedLoss = 2; // percentage of allowable less when placing the stop-loss order
 let limitAcceptedLoss = 0.1; // calculated from acceptedLoss
 let hodlCoef = 1.009; // the last close price should be at least 1 percent higher than bought price
@@ -75,6 +75,7 @@ var main = async function () {
 
     var symbol = symbols[i].symbol;
     var limitToSpent = symbols[i].limitToSpent;
+    let placeStopLoss = symbols[i].placeStopLoss;
 
     // check exchange info to find info about current pair
     var symbolInfo = calcIndicators.getSymbolInfo(exchangeInfo, symbol);
@@ -106,7 +107,7 @@ var main = async function () {
       }
     } else if (myBaseBalance === 0 && myBaseBalanceLocked === 0 && myQuoteBalance > 0 && isBuy) { // if not bought yet
       logger.info('Buying ................', { symbol: symbol });
-      await doBuy(symbol, myQuoteBalance, limitToSpent, symbolInfo, timestamp, lastClosePrice, nGreen);
+      await doBuy(symbol, myQuoteBalance, limitToSpent, symbolInfo, timestamp, lastClosePrice, nGreen, placeStopLoss);
     }
   };
 };
@@ -160,7 +161,9 @@ var doMove = async function (symbol, symbolInfo, moveClosedPrice) {
     }
   }
 };
-var doBuy = async function (symbol, myQuoteBalance, limitToSpent, symbolInfo, timestamp, lastClosePrice, nGreen) {
+
+var doBuy = async function (symbol, myQuoteBalance,
+  limitToSpent, symbolInfo, timestamp, lastClosePrice, nGreen, placeStopLoss) {
   // logger.info ('do buy arguments', arguments);
 
   if ((timestamp - stateManager.getBuySignalTime(symbol)) >= buySignalIsValid) {

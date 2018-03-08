@@ -3,11 +3,11 @@
 var returnSymbols = function () {
   return [
 
-    { symbol: 'BTCUSDT', limitToSpent: 30, isHodl: true },
-    { symbol: 'ETHUSDT', limitToSpent: 30, isHodl: true },
-    { symbol: 'BCCUSDT', limitToSpent: 30, isHodl: true },
-    { symbol: 'NEOUSDT', limitToSpent: 30, isHodl: true },
-    { symbol: 'LTCUSDT', limitToSpent: 30, isHodl: true },
+    { symbol: 'BTCUSDT', limitToSpent: 30, isHodl: true, placeStopLoss: false },
+    { symbol: 'ETHUSDT', limitToSpent: 30, isHodl: true, placeStopLoss: false },
+    { symbol: 'BCCUSDT', limitToSpent: 30, isHodl: true, placeStopLoss: true },
+    { symbol: 'NEOUSDT', limitToSpent: 30, isHodl: true, placeStopLoss: true },
+    { symbol: 'LTCUSDT', limitToSpent: 30, isHodl: true, placeStopLoss: false },
 
 
     // { symbol: 'ADABTC', active: 'Y', limitToSpent: 0.0001 },
