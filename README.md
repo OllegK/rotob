@@ -106,13 +106,13 @@ State is saved into ./state.json
 2. active attribute is removed from symbols
 3. Added candleInterval4
 4. More sophisticated check for min notional limit before buying (hopefully no bugs there)
-# 0.2.2.2
-1. WSS
-2. 
-# Roadmap
-## Release 0.3
+# 0.2.2.2 
+1. WSS to get account info
+2. placeStopLossOrder setting is placed in symbols.js 
+3. Bugfixing
+
+# Future possible improvements
 0) Moveable stop-loss (Denis' zagogulina, crossing the falling candle).
-## Future possible improvements
 0) Analyze the amount of signals during the period (24h), and don't buy if it is гармошка.
 1) Diversification and full investment of the available deposit (find all possible pairs and split deposit between them).
 2) Bot asks if coin should be sold/bought.

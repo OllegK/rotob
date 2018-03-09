@@ -11,6 +11,7 @@ const PublicAPI = require('./services/publicAPI');
 const PrivateAPI = require('./services/privateAPI');
 const BinanceWss = require('./services/BinanceWss');
 const BinanceRest = require('./services/BinanceRest');
+// const config = require('./config');
 
 const version = '0.2.2.2';
 
@@ -26,14 +27,11 @@ let isTestBuyOrder = false; // submit an order using test endpoint
 let buyCoefficient = 1.0002; // green should be higher by 0.02%
 let sellCoefficient = 1.0002; // red should be higher by 0.02%
 let hodlBought = 600000; // how many ms hodl since buying the bought coin and ignore the sell signal
-// too short could cause the buy signal ignoring? VVV
 let buySignalIsValid = 10000; // how many ms the buy signal is valid; could be set to 0 to prevent any buy
 let stateValidity = 300000; // how many ms the stored state is valid, if not valid the state will be reset ({})
-// let placeStopLoss = false; // please stop-loss order when bought // move to symbols
 let acceptedLoss = 2; // percentage of allowable less when placing the stop-loss order
 let limitAcceptedLoss = 0.1; // calculated from acceptedLoss
 let hodlCoef = 1.009; // the last close price should be at least 1 percent higher than bought price
-// ----MOVE -----------------------------------------------------------------------------
 let moveCandleInterval = '15m';
 let moveAcceptedLoss = 0.8; // percentage of allowable less when moving the stop-loss order
 let moveLimitAcceptedLoss = 0.2; // calculated from moveAcceptedLoss
@@ -42,7 +40,7 @@ let moveLimitAcceptedLoss = 0.2; // calculated from moveAcceptedLoss
 let mySymbols;
 let exchangeInfo;
 let timeDifference = 0;
-let symbols = require('./symbols').returnSymbols();
+let symbols = require('./symbols').symbols;
 
 const calcIndicators = new CalcIndicators(
   buyCoefficient, sellCoefficient,
@@ -234,7 +232,7 @@ var doSell = async function (symbol, myBaseBalance, myBaseBalanceLocked, symbolI
     if (0 === buyPrice) {
       logger.info('No sell, this is hodl coin, and buy price is not found',
         { symbol: symbol, lastClosePrice: lastClosePrice });
-      await telegramBot.sendMessage(
+      await telegramBot.sendPoliteMessage(symbol, 'BUYPRICENOTFOUND',
         `No sell, this is hodl coin - ${symbol}, and buy price is not found, ${lastClosePrice}`);
       return false;
     }
