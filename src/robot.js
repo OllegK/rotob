@@ -93,10 +93,13 @@ var main = async function () {
         lastClosePrice: lastClosePrice, green: nGreen,
       });
     var timestamp = new Date().getTime();
-    if (((myBaseBalance > 0) || (myBaseBalanceLocked > 0)) && isSell) { // has something to sell
-      logger.info('Selling ................', { symbol: symbol });
-      var isSold = await doSell(
-        symbol, myBaseBalance, myBaseBalanceLocked, symbolInfo, timestamp, lastClosePrice, symbols[i].isHodl);
+    if ((myBaseBalance > 0) || (myBaseBalanceLocked > 0)) {
+      var isSold = false;
+      if (isSell) {
+        logger.info('Selling ................', { symbol: symbol });
+        isSold = await doSell(
+          symbol, myBaseBalance, myBaseBalanceLocked, symbolInfo, timestamp, lastClosePrice, symbols[i].isHodl);
+      }
       if (!isSold && (myBaseBalanceLocked > 0) && placeStopLoss) {
         let [isMove, moveClosedPrice] = await calcIndicators.checkMove(symbol, moveCandleInterval);
         if (isMove) {
