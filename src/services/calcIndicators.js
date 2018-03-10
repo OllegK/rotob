@@ -116,19 +116,19 @@ class CalcIndicators {
           { symbol: symbol, candleInterval: this.candleInterval1 });
         return true;
       }
-      if (this.isSecondaryBuyCheck(symbol, this.candleInterval2, '2nd')) {
+      if (await this.isSecondaryBuyCheck(symbol, this.candleInterval2, '2nd')) {
         if (this.candleInterval2 === this.candleInterval3) {
           this.logger.info('Checking the third buy indicator is skipped as candle intervals are the same',
             { symbol: symbol, candleInterval: this.candleInterval2 });
           return true;
         }
-        if (this.isSecondaryBuyCheck(symbol, this.candleInterval3, '3rd')) {
+        if (await this.isSecondaryBuyCheck(symbol, this.candleInterval3, '3rd')) {
           if (this.candleInterval3 === this.candleInterval4) {
             this.logger.info('Checking the fourth buy indicator is skipped as candle intervals are the same',
               { symbol: symbol, candleInterval: this.candleInterval3 });
             return true;
           }
-          return (this.isSecondaryBuyCheck(symbol, this.candleInterval4, '4th'));
+          return (await this.isSecondaryBuyCheck(symbol, this.candleInterval4, '4th'));
         }
       }
     }

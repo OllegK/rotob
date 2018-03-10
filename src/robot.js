@@ -11,12 +11,13 @@ const PublicAPI = require('./services/publicAPI');
 const PrivateAPI = require('./services/privateAPI');
 const BinanceWss = require('./services/BinanceWss');
 const BinanceRest = require('./services/BinanceRest');
-// const config = require('./config');
+const config = require('./config');
 
 const version = '0.2.2.2';
 
+const validateConfigParameter = name => { throw new Error(`${name} is undefined`); };
 // --------------------------------------------------------------------------------------
-let interval = 10000; // value in ms between iterations, sleep time
+let interval = 10000; //config.interval1 || validateConfigParameter('interval');
 let candleInterval1 = '1h'; // candle size for first buy check
 let candleInterval2 = '30m'; // candle size for second buy check
 let candleInterval3 = '15m'; // candle size for third buy check
@@ -57,13 +58,22 @@ const processWssUpdate = async (msg) => {
     mySymbols = msg.B;
     let arr = msg.B
       .filter(el => (el.f > 0 || el.l > 0))
-      .map(el => `${el.a}:${el.f}${el.l > 0 ? '|' + el.l : '' }`)
+      .map(el => `${el.a}:${el.f}${el.l > 0 ? '/' + el.l : '' }`)
       .join('|');
     await telegramBot.sendMessage('Update account info is received - ' + JSON.stringify(arr));
     console.log(`RECEIVED ACCOUNT UPDATE: ${JSON.stringify(arr)}`);
   } else if ('executionReport' === msg.e) {
-    await telegramBot.sendMessage(JSON.stringify(msg));
     console.log(JSON.stringify(msg));
+    if ('STOP_LOSS_LIMIT' === msg.o) {
+      delete msg.e;
+      delete msg.o;
+      delete msg.f;
+      delete msg.F;
+      delete msg.g;
+      delete msg.I;
+      delete msg.M;
+      await telegramBot.sendMessage(`Stop loss limit update: ${JSON.stringify(msg)}`);
+    }
   }
 };
 
