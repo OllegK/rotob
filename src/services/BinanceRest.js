@@ -6,7 +6,9 @@ const axios = require('axios');
 
 class BinanceRest {
 
-  constructor() {
+  constructor(logger) {
+
+    this.logger = logger;
 
     this.url = 'https://api.binance.com/api/v1/userDataStream';
     this.keepAliveInterval = 600000; // keep alive each 10 minutes
@@ -35,6 +37,7 @@ class BinanceRest {
     } catch (err) {
       console.log('Error create listen key');
       console.log(err.response ? err.response.data : err);
+      this.logger.error('Error creating the listen key', {err: err.response ? err.response.data : err});
       throw new Error(err);
     }
   }
@@ -55,6 +58,7 @@ class BinanceRest {
     } catch (err) {
       console.log('Error keepAliveUserStream');
       console.log(err.response ? err.response.data : err);
+      this.logger.error('Error refreshing the listen key', {err: err.response ? err.response.data : err});
       throw new Error(err);
     }
   }
@@ -75,6 +79,7 @@ class BinanceRest {
     } catch (err) {
       console.log('Error deleteUserStream');
       console.log(err.response ? err.response.data : err);
+      this.logger.error('Error deleting the listen key', {err: err.response ? err.response.data : err});
       throw new Error(err);
     }
   }

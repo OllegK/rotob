@@ -88,7 +88,7 @@ class CalcIndicators {
     if (!isSellSignal) {
       isBuySignal = await this.isBuySignal(symbol, arrRed, arrGreen);
     }
-    this.logger.info('Signals are calculated', {
+    this.logger.info(`(${symbol})Signals are calculated`, {
       symbol: symbol, isSellSignal: isSellSignal, isBuySignal: isBuySignal,
     });
 

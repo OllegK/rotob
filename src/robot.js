@@ -20,7 +20,7 @@ let symbols = require('./symbols').symbols;
 const privateAPI = new PrivateAPI(logger, stateManager, timeDifference);
 const publicAPI = new PublicAPI(logger);
 
-const version = '0.2.2.2';
+const version = '0.2.2.3';
 
 const validateConfigParameter = name => { throw new Error(`Parameter ${name} is undefined`); };
 let interval = config.interval || validateConfigParameter('interval');
@@ -31,7 +31,7 @@ let candleInterval4 = config.candleInterval4 || validateConfigParameter('candleI
 let calcValues = config.calcValues || validateConfigParameter('calcValues');
 let buyCoefficient = config.buyCoefficient || validateConfigParameter('buyCoefficient');
 let sellCoefficient = config.sellCoefficient || validateConfigParameter('sellCoefficient');
-let hodlBought = config.hodlBought || validateConfigParameter('hodlBought');
+// let hodlBought = config.hodlBought || validateConfigParameter('hodlBought');
 let buySignalIsValid = config.buySignalIsValid || validateConfigParameter('buySignalIsValid');
 let stateValidity = config.stateValidity || validateConfigParameter('stateValidity');
 let acceptedLoss = config.acceptedLoss || validateConfigParameter('acceptedLoss');
@@ -58,11 +58,11 @@ const processWssUpdate = async (msg) => {
       .filter(el => (el.f > 0 || el.l > 0))
       .map(el => `${el.a}:${el.f}${el.l > 0 ? '/' + el.l : '' }`)
       .join('|');
-    await telegramBot.sendMessage('Update account info is received - ' + JSON.stringify(arr));
-    console.log(`RECEIVED ACCOUNT UPDATE: ${JSON.stringify(arr)}`);
+    await telegramBot.sendMessage(`Update account info is received - ${arr}`);
+    console.log(`RECEIVED ACCOUNT UPDATE: ${arr}`);
   } else if ('executionReport' === msg.e) {
     console.log(JSON.stringify(msg));
-    if ('STOP_LOSS_LIMIT' === msg.o) {
+    if ('STOP_LOSS_LIMIT' === msg.o && ('NEW' !== msg.X || 'CANCELED' !== msg.X)) {
       delete msg.e;
       delete msg.o;
       delete msg.f;
@@ -70,7 +70,16 @@ const processWssUpdate = async (msg) => {
       delete msg.g;
       delete msg.I;
       delete msg.M;
-      await telegramBot.sendMessage(`Stop loss limit update: ${JSON.stringify(msg)}`);
+      if ('FILLED' === msg.X) {
+        if (msg.q === msg.l) { // quantity is the same as last executed, i.e. order was fully executed in one trade
+          await telegramBot.sendMessage(
+            `${msg.c} Stop loss limit order was fully executed in one trade: ${msg.q}/${msg.L}/${JSON.stringify(msg)}`);
+        } else {
+          await telegramBot.sendMessage(`${msg.c} Stop loss limit order update: ${JSON.stringify(msg)}`);
+        }
+      } else {
+        await telegramBot.sendMessage(`${JSON.stringify(msg)}`);
+      }
     }
   }
 };
@@ -231,12 +240,12 @@ var doBuy = async function (symbol, myQuoteBalance,
 var doSell = async function (symbol, myBaseBalance, myBaseBalanceLocked, symbolInfo,
   timestamp, lastClosePrice, isHodl) {
   // logger.info ('do sell arguments', arguments);
-  let buyTime = stateManager.getBuyTime(symbol);
-  if ((timestamp - buyTime) < hodlBought) {
-    logger.info('SHOULD BE HODLED', { symbol: symbol, hodlBought: hodlBought, current: timestamp, buyTime: buyTime });
-    await telegramBot.sendMessage(`I am going to HODL ${symbol} even if I got the sell indicator`);
-    return false;
-  }
+  // let buyTime = stateManager.getBuyTime(symbol);
+  // if ((timestamp - buyTime) < hodlBought) {
+  //  logger.info('SHOULD BE HODLED', { symbol: symbol, hodlBought: hodlBought, current: timestamp, buyTime: buyTime });
+  //  await telegramBot.sendMessage(`I am going to HODL ${symbol} even if I got the sell indicator`);
+  //  return false;
+  // }
   if (isHodl) {
     let buyPrice = stateManager.getBuyPrice(symbol);
     logger.info('Buy price is gotten', { symbol: symbol, buyPrice: buyPrice, lastClosePrice: lastClosePrice });
@@ -336,7 +345,7 @@ var start = async function () {
   logger.info('calling the getAccount');
   mySymbols = await privateAPI.getAccount();
 
-  let listenKey = await (new BinanceRest()).createListenKey();
+  let listenKey = await (new BinanceRest(logger)).createListenKey();
   await (new BinanceWss(listenKey)).start(processWssUpdate);
 
   let iterations = 0;

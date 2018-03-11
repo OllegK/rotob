@@ -110,6 +110,9 @@ State is saved into ./state.json
 1. WSS to get account info
 2. placeStopLossOrder setting is placed in symbols.js 
 3. Bugfixing
+# 0.2.2.3 
+1. Stabilization and impsrovements
+2. Bugfixing
 
 # Future possible improvements
 0) Moveable stop-loss (Denis' zagogulina, crossing the falling candle).

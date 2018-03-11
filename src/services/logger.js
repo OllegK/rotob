@@ -53,7 +53,7 @@ var init = function () {
     transports: [
       new transports.File({
         filename: `${logDirectory}/output.log`,
-        maxsize: 1024 * 1024 * 50,
+        maxsize: 1024 * 1024 * 20,
         maxFiles: 999,
         tailable: true,
       }),

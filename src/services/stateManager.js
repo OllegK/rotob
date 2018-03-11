@@ -117,12 +117,14 @@ class StateManager {
     }
   */
 
+  /*
   getBuyTime(symbol) {
     if (this.state[symbol]) {
       return this.state[symbol].ORDER_BUY || 0;
     }
     return 0;
   }
+  */
 
   getBuyPrice(symbol) {
     if (this.state[symbol]) {
