@@ -27,11 +27,13 @@ class BinanceWss {
 
     var wsc = new WebSocket();
     wsc.open(`wss://stream.binance.com:9443/ws/${this.listenKey}`);
+
     wsc.onopen = function () {
-      console.log("WebSocketClient connected");
-    }
+      console.log('WebSocketClient connected');
+    };
+
     wsc.onmessage = function (data, flags, number) {
-      console.log(`WebSocketClient message #${number}: `, data);
+      // console.log(`WebSocketClient message #${number}: `, data);
       let msg;
       try {
         msg = JSON.parse(data);
@@ -39,7 +41,7 @@ class BinanceWss {
       } catch (e) {
         throw new Error(e);
       }
-    }
+    };
   }
 }
 
