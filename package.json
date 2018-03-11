@@ -23,6 +23,7 @@
   "devDependencies": {
     "dotenv": "^5.0.0",
     "eslint": "^4.17.0",
-    "eslint-config-strongloop": "^2.1.0"
+    "eslint-config-strongloop": "^2.1.0",
+    "eslint-plugin-no-async-without-await": "^1.2.0"
   }
 }

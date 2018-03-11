@@ -9,7 +9,11 @@
   "env": {
     "es6": true
   },
+  "plugins": [
+    "no-async-without-await"
+  ],
   "rules": {
+    "no-async-without-await/no-async-without-await": 1,
     "max-len": [
       2,
       120,

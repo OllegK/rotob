@@ -19,7 +19,7 @@ const calcIndicators = new CalcIndicators(
   calcValues, logger, stateManager
 );
 
-var run = async function () {
+var run = function () {
 
   var myBaseBalance = 0;
   var myBaseBalanceLocked = 0.01953;

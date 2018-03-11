@@ -13,43 +13,41 @@ const BinanceWss = require('./services/BinanceWss');
 const BinanceRest = require('./services/BinanceRest');
 const config = require('./config');
 
-const version = '0.2.2.2';
-
-const validateConfigParameter = name => { throw new Error(`${name} is undefined`); };
-// --------------------------------------------------------------------------------------
-let interval = 10000; //config.interval1 || validateConfigParameter('interval');
-let candleInterval1 = '1h'; // candle size for first buy check
-let candleInterval2 = '30m'; // candle size for second buy check
-let candleInterval3 = '15m'; // candle size for third buy check
-let candleInterval4 = '2h'; // candle size for 4th buy check
-let calcValues = 2; // how many indications should be calculated
-let isTestSellOrder = false; // submit an order using test endpoint
-let isTestBuyOrder = false; // submit an order using test endpoint
-let buyCoefficient = 1.0002; // green should be higher by 0.02%
-let sellCoefficient = 1.0002; // red should be higher by 0.02%
-let hodlBought = 600000; // how many ms hodl since buying the bought coin and ignore the sell signal
-let buySignalIsValid = 10000; // how many ms the buy signal is valid; could be set to 0 to prevent any buy
-let stateValidity = 300000; // how many ms the stored state is valid, if not valid the state will be reset ({})
-let acceptedLoss = 2; // percentage of allowable less when placing the stop-loss order
-let limitAcceptedLoss = 0.1; // calculated from acceptedLoss
-let hodlCoef = 1.009; // the last close price should be at least 1 percent higher than bought price
-let moveCandleInterval = '15m';
-let moveAcceptedLoss = 0.8; // percentage of allowable less when moving the stop-loss order
-let moveLimitAcceptedLoss = 0.2; // calculated from moveAcceptedLoss
-// --------------------------------------------------------------------------------------
-
 let mySymbols;
 let exchangeInfo;
 let timeDifference = 0;
 let symbols = require('./symbols').symbols;
+const privateAPI = new PrivateAPI(logger, stateManager, timeDifference);
+const publicAPI = new PublicAPI(logger);
+
+const version = '0.2.2.2';
+
+const validateConfigParameter = name => { throw new Error(`Parameter ${name} is undefined`); };
+let interval = config.interval || validateConfigParameter('interval');
+let candleInterval1 = config.candleInterval1 || validateConfigParameter('candleInterval1');
+let candleInterval2 = config.candleInterval2 || validateConfigParameter('candleInterval2');
+let candleInterval3 = config.candleInterval3 || validateConfigParameter('candleInterval3');
+let candleInterval4 = config.candleInterval4 || validateConfigParameter('candleInterval4');
+let calcValues = config.calcValues || validateConfigParameter('calcValues');
+let buyCoefficient = config.buyCoefficient || validateConfigParameter('buyCoefficient');
+let sellCoefficient = config.sellCoefficient || validateConfigParameter('sellCoefficient');
+let hodlBought = config.hodlBought || validateConfigParameter('hodlBought');
+let buySignalIsValid = config.buySignalIsValid || validateConfigParameter('buySignalIsValid');
+let stateValidity = config.stateValidity || validateConfigParameter('stateValidity');
+let acceptedLoss = config.acceptedLoss || validateConfigParameter('acceptedLoss');
+let limitAcceptedLoss = config.limitAcceptedLoss || validateConfigParameter('limitAcceptedLoss');
+let hodlCoef = config.hodlCoef || validateConfigParameter('hodlCoef');
+let moveCandleInterval = config.moveCandleInterval || validateConfigParameter('moveCandleInterval');
+let moveAcceptedLoss = config.moveAcceptedLoss || validateConfigParameter('moveAcceptedLoss');
+let moveLimitAcceptedLoss = config.moveLimitAcceptedLoss || validateConfigParameter('moveLimitAcceptedLoss');
+let isTestSellOrder = config.isTestSellOrder;
+let isTestBuyOrder = config.isTestBuyOrder;
 
 const calcIndicators = new CalcIndicators(
   buyCoefficient, sellCoefficient,
   candleInterval1, candleInterval2, candleInterval3, candleInterval4,
   calcValues, logger, stateManager
 );
-const privateAPI = new PrivateAPI(logger, stateManager, timeDifference);
-const publicAPI = new PublicAPI(logger);
 
 const timeout = ms => new Promise(res => setTimeout(res, ms));
 
