@@ -35,11 +35,12 @@ WebSocketClient.prototype.open = function (url) {
         break;
       default:
         // this.onerror(e);
-        console.log('unrecognized error - ' + e.code);
+        console.log('unrecognized error in WebSocketClient - ' + e.code);
         break;
     }
   });
-  setInterval(() => {
+  console.log('Setting interval... '); // when to clear interval
+  this.interval = setInterval(() => {
     this.send('ping');
   }, 5000);
 };
