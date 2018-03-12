@@ -43,7 +43,7 @@ let moveLimitAcceptedLoss = config.moveLimitAcceptedLoss || validateConfigParame
 let isTestSellOrder = config.isTestSellOrder;
 let isTestBuyOrder = config.isTestBuyOrder;
 let red = config.red || validateConfigParameter('red');
-let green = config.red || validateConfigParameter('green');
+let green = config.green || validateConfigParameter('green');
 
 const calcIndicators = new CalcIndicators(
   {
