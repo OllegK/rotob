@@ -34,7 +34,8 @@ WebSocketClient.prototype.open = function (url) {
         this.reconnect(e);
         break;
       default:
-        this.onerror(e);
+        // this.onerror(e);
+        console.log('unrecognized error - ' + e.code);
         break;
     }
   });
