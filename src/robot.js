@@ -22,7 +22,9 @@ const publicAPI = new PublicAPI(logger);
 
 const version = '0.2.2.3';
 
-const validateConfigParameter = name => {throw new Error(`Parameter ${name} is undefined`);};
+const validateConfigParameter = name => {
+  throw new Error(`Parameter ${name} is undefined`);
+};
 let interval = config.interval || validateConfigParameter('interval');
 let candleInterval1 = config.candleInterval1 || validateConfigParameter('candleInterval1');
 let candleInterval2 = config.candleInterval2 || validateConfigParameter('candleInterval2');
@@ -49,7 +51,7 @@ const calcIndicators = new CalcIndicators(
   {
     buyCoefficient, sellCoefficient,
     candleInterval1, candleInterval2, candleInterval3, candleInterval4,
-    calcValues, logger, stateManager, red, green
+    calcValues, logger, stateManager, red, green,
   }
 );
 
@@ -91,6 +93,11 @@ const processWssUpdate = async (msg) => {
 var main = async function () {
 
   for (var i = 0; i < symbols.length; i++) {
+
+    if (mySymbols === null) {
+      logger.info('calling the getAccount inside the cycle');
+      mySymbols = await privateAPI.getAccount();
+    }
 
     var symbol = symbols[i].symbol;
     var limitToSpent = symbols[i].limitToSpent;
@@ -213,6 +220,7 @@ var doBuy = async function (symbol, myQuoteBalance,
         buyAmount: buyAmount, spentAmount: spentAmount, lastClosePrice: lastClosePrice,
         green: nGreen,
       });
+    mySymbols = null; // shame, wss doesn't work good enough
     let avg = await privateAPI.placeMarketBuyOrder(symbol, buyAmount, isTestBuyOrder);
     await telegramBot.sendMessage(
       `${symbol}: bought ${buyAmount}, green ${nGreen}, last close price ${lastClosePrice}, order avg price ${avg}`);
@@ -287,6 +295,7 @@ var doSell = async function (symbol, myBaseBalance, myBaseBalanceLocked, symbolI
   if (sellAmount > 0) {
     await telegramBot.sendMessage(
       `I am going to place sell order for ${symbol}, sell amount:${sellAmount}, last close price:${lastClosePrice}`);
+    mySymbols = null; // shame, wss doesn't work good enough
     await privateAPI.placeMarketSellOrder(symbol, sellAmount, isTestSellOrder);
     return true;
   }
