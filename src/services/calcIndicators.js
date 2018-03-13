@@ -4,11 +4,11 @@ const PublicAPI = require('./publicAPI');
 
 class CalcIndicators {
 
-  constructor(buyCoefficient, sellCoefficient, candleInterval1,
+  constructor({buyCoefficient, sellCoefficient, candleInterval1,
     candleInterval2, candleInterval3, candleInterval4,
-    calcValues, logger, stateManager) {
-    this.red = 8;
-    this.green = 4;
+    calcValues, logger, stateManager, red, green}) {
+    this.red = red;
+    this.green = green;
     this.buyCoefficient = buyCoefficient;
     this.sellCoefficient = sellCoefficient;
     this.candleInterval1 = candleInterval1;

@@ -21,5 +21,7 @@ config.hodlCoef = 1.009; // the last close price should be at least 1 percent hi
 config.moveCandleInterval = '15m';
 config.moveAcceptedLoss = 0.8; // percentage of allowable less when moving the stop-loss order
 config.moveLimitAcceptedLoss = 0.2; // calculated from moveAcceptedLoss
+config.red = 8; // MA
+config.green = 4; // MA
 
 module.exports = config;

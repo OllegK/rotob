@@ -34,11 +34,13 @@ WebSocketClient.prototype.open = function (url) {
         this.reconnect(e);
         break;
       default:
-        this.onerror(e);
+        // this.onerror(e);
+        console.log('unrecognized error in WebSocketClient - ' + e.code);
         break;
     }
   });
-  setInterval(() => {
+  console.log('Setting interval... '); // when to clear interval
+  this.interval = setInterval(() => {
     this.send('ping');
   }, 5000);
 };
