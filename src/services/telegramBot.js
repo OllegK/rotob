@@ -1,6 +1,7 @@
 'use strict';
 
 const axios = require('axios');
+axios.defaults.timeout = 10000;
 // const logger = require('./logger').init();
 
 

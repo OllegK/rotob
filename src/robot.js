@@ -95,6 +95,7 @@ var main = async function () {
   for (var i = 0; i < symbols.length; i++) {
 
     if (mySymbols === null) {
+      //todo : make reconnect here??
       logger.info('calling the getAccount inside the cycle');
       mySymbols = await privateAPI.getAccount();
     }
