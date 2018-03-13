@@ -68,7 +68,7 @@ const processWssUpdate = async (msg) => {
     console.log(`RECEIVED ACCOUNT UPDATE: ${arr}`);
   } else if ('executionReport' === msg.e) {
     console.log(JSON.stringify(msg));
-    if ('STOP_LOSS_LIMIT' === msg.o && ('NEW' !== msg.X || 'CANCELED' !== msg.X)) {
+    if ('STOP_LOSS_LIMIT' === msg.o && 'NEW' !== msg.X && 'CANCELED' !== msg.X) {
       delete msg.e;
       delete msg.o;
       delete msg.f;
@@ -95,7 +95,7 @@ var main = async function () {
   for (var i = 0; i < symbols.length; i++) {
 
     if (mySymbols === null) {
-      //todo : make reconnect here??
+      // todo : make reconnect here??
       logger.info('calling the getAccount inside the cycle');
       mySymbols = await privateAPI.getAccount();
     }
