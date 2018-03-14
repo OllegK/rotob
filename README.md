@@ -110,7 +110,7 @@ State is saved into ./state.json
 1. WSS to get account info
 2. placeStopLossOrder setting is placed in symbols.js 
 3. Bugfixing
-# 0.2.2.3 
+# 0.2.2.3 - 0.2.2.4
 1. Stabilization and impsrovements
 2. Bugfixing
 

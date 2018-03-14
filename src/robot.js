@@ -20,7 +20,7 @@ let symbols = require('./symbols').symbols;
 const privateAPI = new PrivateAPI(logger, stateManager, timeDifference);
 const publicAPI = new PublicAPI(logger);
 
-const version = '0.2.2.3';
+const version = '0.2.2.4';
 
 const validateConfigParameter = name => {
   throw new Error(`Parameter ${name} is undefined`);
@@ -304,13 +304,13 @@ var doSell = async function (symbol, myBaseBalance, myBaseBalanceLocked, symbolI
 
 var runMain = async function (nr) {
 
-  logger.info('running main', {iteration: ++nr});
+  logger.info('running main', {iteration: ++nr, memory : JSON.stringify(process.memoryUsage())});
   if (nr % 500 === 0) {
     timeDifference = await publicAPI.getServerTime();
     logger.info('calculated time difference in ms - ' + timeDifference);
     privateAPI.setTimeDifference(timeDifference);
     await telegramBot.sendMessage(
-      `Master, I am still running - ${nr} iterations. Calculated time difference is ${timeDifference}ms`);
+      `Master, I am still running - ${nr} iterations. Calculated time difference is ${timeDifference}ms. ${JSON.stringify(process.memoryUsage())}`);
   }
 
   await main();
