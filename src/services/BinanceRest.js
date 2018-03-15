@@ -12,7 +12,7 @@ class BinanceRest {
     this.eventEmitter = eventEmitter;
 
     this.url = 'https://api.binance.com/api/v1/userDataStream';
-    this.keepAliveInterval = 600000; // keep alive each 10 minutes
+    this.keepAliveInterval = 300000; // keep alive each 10 minutes
 
     process.on('SIGINT', async () => {
       await this.deleteUserStream();

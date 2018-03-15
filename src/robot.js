@@ -16,7 +16,7 @@ const config = require('./config');
 const events = require('events');
 const eventEmitter = new events.EventEmitter();
 
-let mySymbols;
+let mySymbols = null;
 let exchangeInfo;
 let timeDifference = 0;
 let symbols = require('./symbols').symbols;
@@ -93,12 +93,13 @@ const processWssUpdate = async (msg) => {
   }
 };
 
-const myEventHandler = async () => {
+const reconnectHandler = async () => {
   console.log('I hear a needReconnect!');
+  mySymbols = null;
   let listenKey = await (new BinanceRest(logger, eventEmitter)).createListenKey();
   await (new BinanceWss(listenKey)).start(processWssUpdate);
 };
-eventEmitter.on('needReconnect', myEventHandler);
+eventEmitter.on('needReconnect', reconnectHandler);
 
 var main = async function () {
 
@@ -367,8 +368,8 @@ var start = async function () {
   }
   logger.info('initState is completed', {state: stateManager.getState()});
 
-  logger.info('calling the getAccount');
-  mySymbols = await privateAPI.getAccount();
+  // logger.info('calling the getAccount');
+  // mySymbols = await privateAPI.getAccount();
 
   eventEmitter.emit('needReconnect'); // connect to WSS
   let iterations = 0;
