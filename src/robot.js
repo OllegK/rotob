@@ -23,7 +23,7 @@ let symbols = require('./symbols').symbols;
 const privateAPI = new PrivateAPI(logger, stateManager, timeDifference);
 const publicAPI = new PublicAPI(logger);
 
-const version = '0.2.2.4';
+const version = '0.2.2.5';
 
 const validateConfigParameter = name => {
   throw new Error(`Parameter ${name} is undefined`);
