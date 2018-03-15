@@ -6,9 +6,10 @@ const axios = require('axios');
 
 class BinanceRest {
 
-  constructor(logger) {
+  constructor(logger, eventEmitter) {
 
     this.logger = logger;
+    this.eventEmitter = eventEmitter;
 
     this.url = 'https://api.binance.com/api/v1/userDataStream';
     this.keepAliveInterval = 600000; // keep alive each 10 minutes
@@ -59,6 +60,14 @@ class BinanceRest {
       console.log('Error keepAliveUserStream');
       console.log(err.response ? err.response.data : err);
       this.logger.error('Error refreshing the listen key', {err: err.response ? err.response.data : err});
+      if (err.response) {
+        if (err.response.data) {
+          if (err.response.data.code === -1125) {
+            this.eventEmitter.emit('needReconnect');
+            return;
+          }
+        }
+      }
       throw new Error(err);
     }
   }

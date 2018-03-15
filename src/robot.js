@@ -13,6 +13,9 @@ const BinanceWss = require('./services/BinanceWss');
 const BinanceRest = require('./services/BinanceRest');
 const config = require('./config');
 
+const events = require('events');
+const eventEmitter = new events.EventEmitter();
+
 let mySymbols;
 let exchangeInfo;
 let timeDifference = 0;
@@ -90,12 +93,20 @@ const processWssUpdate = async (msg) => {
   }
 };
 
+const myEventHandler = async () => {
+  console.log('I hear a needReconnect!');
+  let listenKey = await (new BinanceRest(logger, eventEmitter)).createListenKey();
+  await (new BinanceWss(listenKey)).start(processWssUpdate);
+};
+eventEmitter.on('needReconnect', myEventHandler);
+
 var main = async function () {
 
   for (var i = 0; i < symbols.length; i++) {
 
     if (mySymbols === null) {
       // todo : make reconnect here??
+      await telegramBot.sendMessage('I am explicitly calling get account info');
       logger.info('calling the getAccount inside the cycle');
       mySymbols = await privateAPI.getAccount();
     }
@@ -304,13 +315,13 @@ var doSell = async function (symbol, myBaseBalance, myBaseBalanceLocked, symbolI
 
 var runMain = async function (nr) {
 
-  logger.info('running main', {iteration: ++nr, memory : JSON.stringify(process.memoryUsage())});
+  logger.info('running main', {iteration: ++nr, memory: JSON.stringify(process.memoryUsage())});
   if (nr % 500 === 0) {
     timeDifference = await publicAPI.getServerTime();
     logger.info('calculated time difference in ms - ' + timeDifference);
     privateAPI.setTimeDifference(timeDifference);
     await telegramBot.sendMessage(
-      `Master, I am still running - ${nr} iterations. Calculated time difference is ${timeDifference}ms. ${JSON.stringify(process.memoryUsage())}`);
+      `I am still running - ${nr}. Time drift is ${timeDifference}ms.${JSON.stringify(process.memoryUsage())}`);
   }
 
   await main();
@@ -359,9 +370,7 @@ var start = async function () {
   logger.info('calling the getAccount');
   mySymbols = await privateAPI.getAccount();
 
-  let listenKey = await (new BinanceRest(logger)).createListenKey();
-  await (new BinanceWss(listenKey)).start(processWssUpdate);
-
+  eventEmitter.emit('needReconnect'); // connect to WSS
   let iterations = 0;
   runMain(iterations);
 };
