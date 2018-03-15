@@ -15,7 +15,7 @@ class BinanceRest {
     this.keepAliveInterval = 600000; // keep alive each 10 minutes
 
     process.on('SIGINT', async () => {
-      await this.deleteUserSream();
+      await this.deleteUserStream();
       if (this.keepAliveIntervalId) {
         clearInterval(this.keepAliveIntervalId);
       }
@@ -63,6 +63,7 @@ class BinanceRest {
       if (err.response) {
         if (err.response.data) {
           if (err.response.data.code === -1125) {
+            clearInterval(this.keepAliveIntervalId);
             this.eventEmitter.emit('needReconnect');
             return;
           }
@@ -72,7 +73,8 @@ class BinanceRest {
     }
   }
 
-  async deleteUserSream() {
+  async deleteUserStream() {
+    console.log('delete user stream');
     if (!this.listenKey) {
       return;
     }
