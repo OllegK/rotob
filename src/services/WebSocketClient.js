@@ -18,7 +18,7 @@ WebSocketClient.prototype.open = function (url) {
     this.onmessage(data, flags, this.number);
   });
   this.instance.on('close', (e) => {
-    console.log('this instance on closed', e.code);
+    console.log('this instance on closed', e);
     switch (e) {
       case 1000:	// CLOSE_NORMAL
         console.log('WebSocket: closed');
@@ -27,7 +27,7 @@ WebSocketClient.prototype.open = function (url) {
         this.reconnect(e);
         break;
     }
-    this.onclose(e);
+    // this.onclose(e);
   });
   this.instance.on('error', (e) => {
     console.log('this instance on error', e.code);
@@ -61,10 +61,10 @@ WebSocketClient.prototype.send = function (data, option) {
 WebSocketClient.prototype.reconnect = function (e) {
   console.log(`WebSocketClient: retry in ${this.autoReconnectInterval}ms`, e);
   this.instance.removeAllListeners();
-  var that = this;
-  setTimeout(function () {
+  // var that = this;
+  setTimeout(() => {
     console.log('WebSocketClient: reconnecting...');
-    that.open(that.url);
+    this.open(this.url);
   }, this.autoReconnectInterval);
 };
 

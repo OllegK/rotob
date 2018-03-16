@@ -36,7 +36,7 @@ var init = function () {
               return '[Circular]';
             }
 
-            if (i >= 299) { // seems to be a hardcoded maximum
+            if (i >= 199) { // seems to be a hardcoded maximum
               return '[Unknown]';
             }
 
