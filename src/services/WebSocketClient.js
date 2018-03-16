@@ -44,10 +44,15 @@ WebSocketClient.prototype.open = function (url) {
         break;
     }
   });
+  this.instance.on ('ping', () => {
+    console.log('do ping');
+    this.send('ping');
+  });
   if (!this.interval) {
     console.log('Setting interval... '); // when to clear interval
     this.interval = setInterval(() => {
-      this.send('ping');
+    //  this.send('ping');
+      this.instance.emit('ping');
     }, 5000);
   }
 };
