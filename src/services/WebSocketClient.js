@@ -18,6 +18,7 @@ WebSocketClient.prototype.open = function (url) {
     this.onmessage(data, flags, this.number);
   });
   this.instance.on('close', (e) => {
+    console.log('this instance on closed', e.code);
     switch (e) {
       case 1000:	// CLOSE_NORMAL
         console.log('WebSocket: closed');
@@ -29,6 +30,7 @@ WebSocketClient.prototype.open = function (url) {
     this.onclose(e);
   });
   this.instance.on('error', (e) => {
+    console.log('this instance on error', e.code);
     switch (e.code) {
       case 'ECONNREFUSED':
         this.reconnect(e);
@@ -51,6 +53,7 @@ WebSocketClient.prototype.send = function (data, option) {
   try {
     this.instance.send(data, option);
   } catch (e) {
+    console.log('catch exception in send');
     this.instance.emit('error', e);
   }
 };

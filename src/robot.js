@@ -12,6 +12,7 @@ const PrivateAPI = require('./services/privateAPI');
 const BinanceWss = require('./services/BinanceWss');
 const BinanceRest = require('./services/BinanceRest');
 const config = require('./config');
+const util = require('./util');
 
 const events = require('events');
 const eventEmitter = new events.EventEmitter();
@@ -22,8 +23,6 @@ let timeDifference = 0;
 let symbols = require('./symbols').symbols;
 const privateAPI = new PrivateAPI(logger, stateManager, timeDifference);
 const publicAPI = new PublicAPI(logger);
-
-const version = '0.2.2.5';
 
 const validateConfigParameter = name => {
   throw new Error(`Parameter ${name} is undefined`);
@@ -82,7 +81,7 @@ const processWssUpdate = async (msg) => {
       if ('FILLED' === msg.X) {
         if (msg.q === msg.l) { // quantity is the same as last executed, i.e. order was fully executed in one trade
           await telegramBot.sendMessage(
-            `${msg.c} Stop loss limit order was fully executed in one trade: ${msg.q}/${msg.L}/${JSON.stringify(msg)}`);
+            `${msg.s}: Stop loss limit order was fully executed in one trade: ${msg.q}/${msg.L}/${JSON.stringify(msg)}`);
         } else {
           await telegramBot.sendMessage(`${msg.c} Stop loss limit order update: ${JSON.stringify(msg)}`);
         }
@@ -338,19 +337,18 @@ var runMain = async function (nr) {
 var runToInitState = async function () {
 
   for (var i = 0; i < symbols.length; i++) {
-
-    if ('Y' !== symbols[i].active) {
-      continue;
-    }
-
     await calcIndicators.calculateSignals(symbols[i].symbol, true);
-
   }
 };
 
 var start = async function () {
-  await telegramBot.sendMessage(`I am starting with ${calcValues} values, interval ${interval}ms, version ${version}`);
-  // await telegramBot.sendMessage(`Pairs in attention ${JSON.stringify({ symbols: symbols })}`);
+
+  if (util.startUI()) {
+    console.log('startUI');
+    require('./web/app')
+  }
+
+  await telegramBot.sendMessage(`I am starting with ${calcValues} values, interval ${interval}ms, version ${util.getVersion()}`);
   logger.info('Starting .........................');
 
   timeDifference = await publicAPI.getServerTime();
@@ -367,9 +365,6 @@ var start = async function () {
     await stateManager.writeState();
   }
   logger.info('initState is completed', {state: stateManager.getState()});
-
-  // logger.info('calling the getAccount');
-  // mySymbols = await privateAPI.getAccount();
 
   eventEmitter.emit('needReconnect'); // connect to WSS
   let iterations = 0;
