@@ -4,7 +4,7 @@ const WebSocket = require('ws');
 
 function WebSocketClient() {
   this.number = 0;	// Message number
-  this.autoReconnectInterval = 2 * 1000;	// ms
+  this.autoReconnectInterval = 1000;	// ms
 }
 
 WebSocketClient.prototype.open = function (url) {
@@ -45,7 +45,6 @@ WebSocketClient.prototype.open = function (url) {
     }
   });
   this.instance.on ('ping', () => {
-    console.log('do ping');
     this.send('ping');
   });
   if (!this.interval) {
