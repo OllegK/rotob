@@ -39,10 +39,12 @@ WebSocketClient.prototype.open = function (url) {
         break;
     }
   });
-  console.log('Setting interval... '); // when to clear interval
-  this.interval = setInterval(() => {
-    this.send('ping');
-  }, 5000);
+  if (!this.interval) {
+    console.log('Setting interval... '); // when to clear interval
+    this.interval = setInterval(() => {
+      this.send('ping');
+    }, 5000);
+  }
 };
 
 WebSocketClient.prototype.send = function (data, option) {
