@@ -81,7 +81,7 @@ const processWssUpdate = async (msg) => {
       if ('FILLED' === msg.X) {
         if (msg.q === msg.l) { // quantity is the same as last executed, i.e. order was fully executed in one trade
           await telegramBot.sendMessage(
-            `${msg.s}: Stop loss limit order was fully executed in one trade: ${msg.q}/${msg.L}/${JSON.stringify(msg)}`);
+            `${msg.s}:Stop loss limit order was fully executed in 1 trade:${msg.q}/${msg.L}/${JSON.stringify(msg)}`);
         } else {
           await telegramBot.sendMessage(`${msg.c} Stop loss limit order update: ${JSON.stringify(msg)}`);
         }
@@ -124,7 +124,7 @@ var main = async function () {
     // check the base asset balance to find if robot needs to sell
     let [myQuoteBalance] = calcIndicators.getBalance(mySymbols, symbolInfo.quoteAsset);
     let [myBaseBalance, myBaseBalanceLocked] = calcIndicators.getBalance(mySymbols, symbolInfo.baseAsset);
-    logger.info('before adjusting balances', {symbol: symbol, myBaseBalance: myBaseBalance});
+    logger.info('before adjusting balances', { symbol: symbol, myBaseBalance: myBaseBalance });
     myBaseBalance = calcIndicators.adjustBalanceToMinQty(myBaseBalance, symbolInfo);
     logger.info('................',
       {
@@ -136,7 +136,7 @@ var main = async function () {
     if ((myBaseBalance > 0) || (myBaseBalanceLocked > 0)) {
       var isSold = false;
       if (isSell) {
-        logger.info('Selling ................', {symbol: symbol});
+        logger.info('Selling ................', { symbol: symbol });
         isSold = await doSell(
           symbol, myBaseBalance, myBaseBalanceLocked, symbolInfo, timestamp, lastClosePrice, symbols[i].isHodl);
       }
@@ -147,7 +147,7 @@ var main = async function () {
         }
       }
     } else if (myBaseBalance === 0 && myBaseBalanceLocked === 0 && myQuoteBalance > 0 && isBuy) { // if not bought yet
-      logger.info('Buying ................', {symbol: symbol});
+      logger.info('Buying ................', { symbol: symbol });
       await doBuy(symbol, myQuoteBalance, limitToSpent, symbolInfo, timestamp, lastClosePrice, nGreen, placeStopLoss);
     }
   };
@@ -156,7 +156,7 @@ var main = async function () {
 var doMove = async function (symbol, symbolInfo, moveClosedPrice) {
 
   let openOrdersResponse = await privateAPI.openOrders(symbol);
-  logger.info(`(doMove)response from checking the open orders for ${symbol}`, {response: openOrdersResponse});
+  logger.info(`(doMove)response from checking the open orders for ${symbol}`, { response: openOrdersResponse });
   let orderId = (openOrdersResponse[0] || {}).orderId;
   let oldStopPrice = Number((openOrdersResponse[0] || {}).stopPrice);
   let origQty = (openOrdersResponse[0] || {}).origQty;
@@ -176,7 +176,7 @@ var doMove = async function (symbol, symbolInfo, moveClosedPrice) {
 
   if (stopPrice <= oldStopPrice) {
     logger.info('(doMove) stopPrice is lower than oldStopPrice, NO MOVE',
-      {symbol: symbol, stopPrice: stopPrice, oldStopPrice: oldStopPrice});
+      { symbol: symbol, stopPrice: stopPrice, oldStopPrice: oldStopPrice });
     // await telegramBot.sendMessage(
     //  `${symbol}:NO MOVE of stop loss order, new stop price ${stopPrice} is lower than old ${oldStopPrice}`);
     return;
@@ -184,19 +184,19 @@ var doMove = async function (symbol, symbolInfo, moveClosedPrice) {
 
   if (orderId && !isTestSellOrder) {
     let cancelResponse = await privateAPI.cancelOrder(symbol, orderId);
-    logger.info('(doMove)The response from cancelling order', {response: cancelResponse.data});
+    logger.info('(doMove)The response from cancelling order', { response: cancelResponse.data });
 
     let limitStopPrice = calcIndicators.formatPrice(stopPrice * (100 - moveLimitAcceptedLoss) / 100, symbolInfo);
     if (calcIndicators.checkMinNotion(limitStopPrice, qty, symbolInfo)) {
-      logger.info('(doMove) The stop prices are calculated', {stopPrice: stopPrice, limitStopPrice: limitStopPrice});
+      logger.info('(doMove) The stop prices are calculated', { stopPrice: stopPrice, limitStopPrice: limitStopPrice });
       let stopResponse =
         await privateAPI.placeStopLossOrder(symbol, qty, isTestBuyOrder, stopPrice, limitStopPrice);
-      logger.info('(doMove) The response from placing stop loss order', {response: stopResponse.data});
+      logger.info('(doMove) The response from placing stop loss order', { response: stopResponse.data });
       await telegramBot.sendMessage(
         `MOVED STOP LOSS order for ${symbol}${qty}, prices ${stopPrice}/${limitStopPrice}, old price ${oldStopPrice}`);
     } else {
       logger.info('(doMove) MIN_NOTION is not passed',
-        {symbol: symbol, limitStopPrice: limitStopPrice, qty: qty});
+        { symbol: symbol, limitStopPrice: limitStopPrice, qty: qty });
       await telegramBot.sendMessage(
         `(doMove) MIN_NOTION failure for ${symbol}, limitStopPrice: ${limitStopPrice}, amount: ${qty}`);
     }
@@ -208,7 +208,7 @@ var doBuy = async function (symbol, myQuoteBalance,
   // logger.info ('do buy arguments', arguments);
 
   if ((timestamp - stateManager.getBuySignalTime(symbol)) >= buySignalIsValid) {
-    logger.info('BUY SIGNAL IS NOT FRESH ENOUGH', {symbol: symbol});
+    logger.info('BUY SIGNAL IS NOT FRESH ENOUGH', { symbol: symbol });
     // await telegramBot.sendMessage(`I am NOT going to buy ${symbol}, as this buy signal is not fresh anymore`);
     return;
   }
@@ -240,22 +240,22 @@ var doBuy = async function (symbol, myQuoteBalance,
       let stopPrice = calcIndicators.formatPrice(avg * (100 - acceptedLoss) / 100, symbolInfo);
       let limitStopPrice = calcIndicators.formatPrice(stopPrice * (100 - limitAcceptedLoss) / 100, symbolInfo);
       if (calcIndicators.checkMinNotion(limitStopPrice, buyAmount, symbolInfo)) {
-        logger.info('The stop prices are calculated', {stopPrice: stopPrice, limitStopPrice: limitStopPrice});
+        logger.info('The stop prices are calculated', { stopPrice: stopPrice, limitStopPrice: limitStopPrice });
         let stopResponse =
           await privateAPI.placeStopLossOrder(symbol, buyAmount, isTestBuyOrder, stopPrice, limitStopPrice);
-        logger.info('The response from placing stop loss order', {response: stopResponse.data});
+        logger.info('The response from placing stop loss order', { response: stopResponse.data });
         await telegramBot.sendMessage(
           `I sucessfully placed STOP LOSS order for ${symbol}, avg ${avg}, prices ${stopPrice}/${limitStopPrice}`);
       } else {
         logger.info('MIN_NOTION is not passed',
-          {symbol: symbol, limitStopPrice: limitStopPrice, buyAmount: buyAmount});
+          { symbol: symbol, limitStopPrice: limitStopPrice, buyAmount: buyAmount });
         await telegramBot.sendMessage(
           `MIN_NOTION failure for ${symbol}, limitStopPrice: ${limitStopPrice}, amount: ${buyAmount}`);
       }
     }
   } else {
     logger.info('no buy, buy amount is 0',
-      {quoteAsset: symbolInfo.quoteAsset, myQuoteBalance: myQuoteBalance});
+      { quoteAsset: symbolInfo.quoteAsset, myQuoteBalance: myQuoteBalance });
     await telegramBot.sendMessage(
       `No buy ${symbol}, buy amount is ${buyAmount}; your ${symbolInfo.quoteAsset} balance is ${myQuoteBalance}`);
   }
@@ -272,17 +272,17 @@ var doSell = async function (symbol, myBaseBalance, myBaseBalanceLocked, symbolI
   // }
   if (isHodl) {
     let buyPrice = stateManager.getBuyPrice(symbol);
-    logger.info('Buy price is gotten', {symbol: symbol, buyPrice: buyPrice, lastClosePrice: lastClosePrice});
+    logger.info('Buy price is gotten', { symbol: symbol, buyPrice: buyPrice, lastClosePrice: lastClosePrice });
     if (0 === buyPrice) {
       logger.info('No sell, this is hodl coin, and buy price is not found',
-        {symbol: symbol, lastClosePrice: lastClosePrice});
+        { symbol: symbol, lastClosePrice: lastClosePrice });
       await telegramBot.sendPoliteMessage(symbol, 'BUYPRICENOTFOUND',
         `No sell, this is hodl coin - ${symbol}, and buy price is not found, ${lastClosePrice}`);
       return false;
     }
     if ((buyPrice * hodlCoef) > lastClosePrice) {
       logger.info('No sell, this is hodl coin, and buy price was higher',
-        {symbol: symbol, buyPrice: buyPrice, lastClosePrice: lastClosePrice, holdCoef: hodlCoef});
+        { symbol: symbol, buyPrice: buyPrice, lastClosePrice: lastClosePrice, holdCoef: hodlCoef });
       await telegramBot.sendPoliteMessage(symbol, 'NOSELL-PRICE',
         `No sell, this is hodl coin - ${symbol}, buy price ${buyPrice}x${hodlCoef} is higher ${lastClosePrice}`);
       return false;
@@ -292,18 +292,18 @@ var doSell = async function (symbol, myBaseBalance, myBaseBalanceLocked, symbolI
   if (myBaseBalanceLocked > 0) {
     // var orderId = stateManager.getOrderId(symbol);
     let openOrdersResponse = await privateAPI.openOrders(symbol);
-    logger.info(`response from checking the open orders for ${symbol}`, {response: openOrdersResponse});
+    logger.info(`response from checking the open orders for ${symbol}`, { response: openOrdersResponse });
     let orderId = (openOrdersResponse[0] || {}).orderId;
     if (orderId && !isTestSellOrder) {
       let cancelResponse = await privateAPI.cancelOrder(symbol, orderId);
-      logger.info('The response from cancelling order', {response: cancelResponse.data});
+      logger.info('The response from cancelling order', { response: cancelResponse.data });
       await telegramBot.sendMessage(
         `I sucessfully cancelled STOP LOSS order for ${symbol}, orderId ${orderId}, locked ${myBaseBalanceLocked}`);
       myBaseBalance += myBaseBalanceLocked;
     }
   }
   var sellAmount = calcIndicators.getSellAmount(myBaseBalance, symbolInfo);
-  logger.info('I am going to place sell order', {symbol: symbol, sellAmount: sellAmount});
+  logger.info('I am going to place sell order', { symbol: symbol, sellAmount: sellAmount });
   if (sellAmount > 0) {
     await telegramBot.sendMessage(
       `I am going to place sell order for ${symbol}, sell amount:${sellAmount}, last close price:${lastClosePrice}`);
@@ -315,7 +315,7 @@ var doSell = async function (symbol, myBaseBalance, myBaseBalanceLocked, symbolI
 
 var runMain = async function (nr) {
 
-  logger.info('running main', {iteration: ++nr, memory: JSON.stringify(process.memoryUsage())});
+  logger.info('running main', { iteration: ++nr, memory: JSON.stringify(process.memoryUsage()) });
   if (nr % 500 === 0) {
     timeDifference = await publicAPI.getServerTime();
     logger.info('calculated time difference in ms - ' + timeDifference);
@@ -327,7 +327,7 @@ var runMain = async function (nr) {
   await main();
   await stateManager.writeState();
 
-  logger.info('scheduling the next run', {interval: interval, nr: nr});
+  logger.info('scheduling the next run', { interval: interval, nr: nr });
   await timeout(interval);
 
   setTimeout(() => runMain(nr), 0);
@@ -344,11 +344,12 @@ var runToInitState = async function () {
 var start = async function () {
 
   if (util.startUI()) {
-    console.log('startUI');
-    require('./web/app')
+    console.log('starting web');
+    require('./web/app');
   }
 
-  await telegramBot.sendMessage(`I am starting with ${calcValues} values, interval ${interval}ms, version ${util.getVersion()}`);
+  await telegramBot.sendMessage(
+    `I am starting with ${calcValues} values, interval ${interval}ms, version ${util.getVersion()}`);
   logger.info('Starting .........................');
 
   timeDifference = await publicAPI.getServerTime();
@@ -364,7 +365,7 @@ var start = async function () {
     await runToInitState();
     await stateManager.writeState();
   }
-  logger.info('initState is completed', {state: stateManager.getState()});
+  logger.info('initState is completed', { state: stateManager.getState() });
 
   eventEmitter.emit('needReconnect'); // connect to WSS
   let iterations = 0;

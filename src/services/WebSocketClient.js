@@ -24,6 +24,7 @@ WebSocketClient.prototype.open = function (url) {
         console.log('WebSocket: closed');
         break;
       default:	// Abnormal closure
+        console.log('WebSocket: instance on closed before reconnect');
         this.reconnect(e);
         break;
     }
@@ -36,8 +37,10 @@ WebSocketClient.prototype.open = function (url) {
         this.reconnect(e);
         break;
       default:
-        // this.onerror(e);
+        console.log('before this on error - ' + e.code);
+        this.onerror(e);
         console.log('unrecognized error in WebSocketClient - ' + e.code);
+        this.reconnect(e);
         break;
     }
   });
