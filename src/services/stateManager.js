@@ -23,7 +23,8 @@ class StateManager {
     if (this.isMongo) {
       let client = await this.MongoClient.connect(this.mongoURL);
       let db = client.db(client.s.options.dbName);
-      this.collection = db.createCollection('state');
+      db.createCollection('state');
+      this.collection = db.collection('state');
       var arr = await this.collection.find({state: 'robotState'}).toArray();
       if (arr.length === 1) {
         this.state = arr[0];
