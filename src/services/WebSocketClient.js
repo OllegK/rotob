@@ -45,7 +45,8 @@ WebSocketClient.prototype.open = function (url) {
     }
   });
   this.instance.on ('ping', () => {
-    this.send('ping');
+    console.log('ping ................');
+    this.pong('pingdata');
   });
   if (!this.interval) {
     console.log('Setting interval... '); // when to clear interval

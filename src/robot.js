@@ -70,7 +70,7 @@ const processWssUpdate = async (msg) => {
     console.log(`RECEIVED ACCOUNT UPDATE: ${arr}`);
   } else if ('executionReport' === msg.e) {
     console.log(JSON.stringify(msg));
-    if ('STOP_LOSS_LIMIT' === msg.o && 'NEW' !== msg.X && 'CANCELED' !== msg.X) {
+    if ('STOP_LOSS_LIMIT' === msg.o /*&& 'NEW' !== msg.X && 'CANCELED' !== msg.X*/) {
       delete msg.e;
       delete msg.o;
       delete msg.f;
@@ -83,7 +83,7 @@ const processWssUpdate = async (msg) => {
           await telegramBot.sendMessage(
             `${msg.s}:Stop loss limit order was fully executed in 1 trade:${msg.q}/${msg.L}/${JSON.stringify(msg)}`);
         } else {
-          await telegramBot.sendMessage(`${msg.c} Stop loss limit order update: ${JSON.stringify(msg)}`);
+          await telegramBot.sendMessage(`${msg.s}:Stop loss limit order update: ${JSON.stringify(msg)}`);
         }
       } else {
         await telegramBot.sendMessage(`${JSON.stringify(msg)}`);
