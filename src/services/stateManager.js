@@ -23,10 +23,11 @@ class StateManager {
     if (this.isMongo) {
       let client = await this.MongoClient.connect(this.mongoURL);
       let db = client.db(client.s.options.dbName);
-      this.collection = db.collection('state');
+      this.collection = db.createCollection('state');
       var arr = await this.collection.find({state: 'robotState'}).toArray();
       if (arr.length === 1) {
         this.state = arr[0];
+        console.log(JSON.stringify(this.state))
       }
     } else {
       if (fs.existsSync(this.filePath)) {

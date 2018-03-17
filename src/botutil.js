@@ -5,8 +5,8 @@ const fs = require('fs');
 var _package = false;
 var startTime = new Date().getTime();
 
-var util = {
-  getVersion: () => util.getPackage().version,
+var botutil = {
+  getVersion: () => botutil.getPackage().version,
   getPackage: () => {
     if (_package) {
       return _package;
@@ -18,4 +18,4 @@ var util = {
   getStartTime: () => startTime,
 };
 
-module.exports = util;
+module.exports = botutil;

@@ -12,7 +12,7 @@ const PrivateAPI = require('./services/privateAPI');
 const BinanceWss = require('./services/BinanceWss');
 const BinanceRest = require('./services/BinanceRest');
 const config = require('./config');
-const util = require('./util');
+const util = require('./botutil');
 
 const events = require('events');
 const eventEmitter = new events.EventEmitter();
