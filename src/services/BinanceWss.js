@@ -29,7 +29,7 @@ class BinanceWss {
     }); */
 
     // this.wsc.close();
-    this.wsc.removeAllListeners();
+    this.wsc.prototype.removeAllListeners();
 
     this.wsc.open(`wss://stream.binance.com:9443/ws/${this.listenKey}`);
 
