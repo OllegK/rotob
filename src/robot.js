@@ -70,7 +70,7 @@ const processWssUpdate = async (msg) => {
     console.log(`RECEIVED ACCOUNT UPDATE: ${arr}`);
   } else if ('executionReport' === msg.e) {
     console.log(JSON.stringify(msg));
-    if ('STOP_LOSS_LIMIT' === msg.o /*&& 'NEW' !== msg.X && 'CANCELED' !== msg.X*/) {
+    if ('STOP_LOSS_LIMIT' === msg.o /* && 'NEW' !== msg.X && 'CANCELED' !== msg.X */) {
       delete msg.e;
       delete msg.o;
       delete msg.f;
@@ -118,11 +118,11 @@ var main = async function () {
     await timeout(0);
 
     // if (mySymbols === null) {
-      // todo : make reconnect here??
+    // todo : make reconnect here??
     //  await telegramBot.sendMessage('I am explicitly calling get account info');
     //  logger.info('calling the getAccount inside the cycle');
     //  mySymbols = await privateAPI.getAccount();
-    //}
+    // }
 
     var symbol = symbols[i].symbol;
     var limitToSpent = symbols[i].limitToSpent;

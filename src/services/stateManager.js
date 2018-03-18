@@ -28,7 +28,7 @@ class StateManager {
       var arr = await this.collection.find({state: 'robotState'}).toArray();
       if (arr.length === 1) {
         this.state = arr[0];
-        console.log(JSON.stringify(this.state))
+        console.log(JSON.stringify(this.state));
       }
     } else {
       if (fs.existsSync(this.filePath)) {

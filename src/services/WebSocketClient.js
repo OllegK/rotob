@@ -45,11 +45,14 @@ WebSocketClient.prototype.open = function (url) {
         break;
     }
   });
-  this.instance.on ('doPing', () => {
+  this.instance.on('doPing', () => {
     this.pingCount = (this.pingCount || 0) + 1;
-    this.instance.ping((err)=>{
+    if (this.pingCount > 50) { // todo : configurable
+      this.eventEmitter.emit('pongMissing');
+    }
+    this.instance.ping((err) => {
       if (err) {
-        console.log('Error in ping callback')
+        console.log('Error in ping callback');
         console.log(err);
         // todo: should we reconnect here ???
       }
@@ -61,10 +64,9 @@ WebSocketClient.prototype.open = function (url) {
       this.instance.emit('doPing');
     }, 5000);
   }
-  this.instance.on('pong', ()=> {
+  this.instance.on('pong', () => {
     this.pingCount -= 1;
     console.log('doing pong', this.pingCount);
-    this.eventEmitter.emit('pongMissing');
   });
 
 };

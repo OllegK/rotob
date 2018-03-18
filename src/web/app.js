@@ -10,10 +10,10 @@ const cors = require('koa-cors');
 router.get('/api/test', require('./ROUTES/test'));
 
 app
-    .use(cors())
-    .use (serve(__dirname + '../vue/dist'))
-    .use(router.routes())
-    .use(router.allowedMethods());
+  .use(cors())
+  .use(serve(__dirname + '../vue/dist'))
+  .use(router.routes())
+  .use(router.allowedMethods());
 
 app.listen(3000);
 console.log('The app is listening. Port 3000');
