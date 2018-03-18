@@ -21,6 +21,13 @@ class BinanceRest {
       }
       process.exit();
     });
+    process.on('SIGTERM', async () => {
+      await this.deleteUserStream();
+      if (this.keepAliveIntervalId) {
+        clearInterval(this.keepAliveIntervalId);
+      }
+      process.exit();
+    });
   }
 
   async createListenKey() {
@@ -32,8 +39,10 @@ class BinanceRest {
         },
       });
       this.listenKey = response.data.listenKey;
-      this.keepAliveIntervalId =
-        setInterval(() => this.keepAliveUserStream(), this.keepAliveInterval);
+      if (!this.keepAliveIntervalId) {
+        this.keepAliveIntervalId =
+          setInterval(() => this.keepAliveUserStream(), this.keepAliveInterval);
+      }
       return this.listenKey;
     } catch (err) {
       console.log('Error create listen key');
@@ -63,7 +72,7 @@ class BinanceRest {
       if (err.response) {
         if (err.response.data) {
           if (err.response.data.code === -1125) {
-            clearInterval(this.keepAliveIntervalId);
+            // clearInterval(this.keepAliveIntervalId);
             this.eventEmitter.emit('needReconnect');
             return;
           }

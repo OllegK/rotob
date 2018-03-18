@@ -24,6 +24,9 @@ let symbols = require('./symbols').symbols;
 const privateAPI = new PrivateAPI(logger, stateManager, timeDifference);
 const publicAPI = new PublicAPI(logger);
 
+const binanceRest = new BinanceRest(logger, eventEmitter);
+const binanceWss = new BinanceWss(eventEmitter);
+
 const validateConfigParameter = name => {
   throw new Error(`Parameter ${name} is undefined`);
 };
@@ -94,9 +97,9 @@ const processWssUpdate = async (msg) => {
 
 const reconnectHandler = async () => {
   console.log('I need to do a needReconnect!');
-  let listenKey = await (new BinanceRest(logger, eventEmitter)).createListenKey();
   eventEmitter.emit('getBalance');
-  await (new BinanceWss(listenKey, eventEmitter)).start(processWssUpdate);
+  let listenKey = await binanceRest.createListenKey();
+  await binanceWss.start(listenKey, processWssUpdate);
 };
 const getBalance = async () => {
   console.log('I need to get a balance!');

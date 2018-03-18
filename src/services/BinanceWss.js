@@ -5,12 +5,14 @@ const WebSocket = require('./WebSocketClient');
 
 class BinanceWss {
 
-  constructor(listenKey, eventEmitter) {
-    this.listenKey = listenKey;
-    this.eventEmitter = eventEmitter;
+  constructor(eventEmitter) {
+    // this.eventEmitter = eventEmitter;
+    this.wsc = new WebSocket(eventEmitter);
   }
 
-  start(func) {
+  start(listenKey, func) {
+
+    this.listenKey = listenKey;
 
     /* const ws = new WebSocketClient(`wss://stream.binance.com:9443/ws/${this.listenKey}`);
 
@@ -26,14 +28,16 @@ class BinanceWss {
       }
     }); */
 
-    var wsc = new WebSocket(this.eventEmitter);
-    wsc.open(`wss://stream.binance.com:9443/ws/${this.listenKey}`);
+    this.wsc.close();
+    this.wsc.removeAllListeners();
 
-    wsc.onopen = function () {
+    this.wsc.open(`wss://stream.binance.com:9443/ws/${this.listenKey}`);
+
+    this.wsc.onopen = function () {
       console.log('WebSocketClient connected');
     };
 
-    wsc.onmessage = function (data, flags, number) {
+    this.wsc.onmessage = function (data, flags, number) {
       // console.log(`WebSocketClient message #${number}: `, data);
       let msg;
       try {
