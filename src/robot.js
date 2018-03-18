@@ -95,7 +95,7 @@ const processWssUpdate = async (msg) => {
 const reconnectHandler = async () => {
   console.log('I need to do a needReconnect!');
   let listenKey = await (new BinanceRest(logger, eventEmitter)).createListenKey();
-  eventEmiiter.emit('getBalance');
+  eventEmitter.emit('getBalance');
   await (new BinanceWss(listenKey, eventEmitter)).start(processWssUpdate);
 };
 const getBalance = async () => {
