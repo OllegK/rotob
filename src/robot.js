@@ -93,23 +93,36 @@ const processWssUpdate = async (msg) => {
 };
 
 const reconnectHandler = async () => {
-  console.log('I hear a needReconnect!');
-  mySymbols = null;
+  console.log('I need to do a needReconnect!');
   let listenKey = await (new BinanceRest(logger, eventEmitter)).createListenKey();
-  await (new BinanceWss(listenKey)).start(processWssUpdate);
+  eventEmiiter.emit('getBalance');
+  await (new BinanceWss(listenKey, eventEmitter)).start(processWssUpdate);
+};
+const getBalance = async () => {
+  console.log('I need to get a balance!');
+  mySymbols = await privateAPI.getAccount();
+};
+const pongMissing = async () => {
+  console.log('pongMissing is needed');
+  await telegramBot.sendMessage('Pong missing is received');
 };
 eventEmitter.on('needReconnect', reconnectHandler);
+eventEmitter.on('getBalance', getBalance);
+eventEmitter.on('pongMissing', pongMissing);
+
 
 var main = async function () {
 
   for (var i = 0; i < symbols.length; i++) {
 
-    if (mySymbols === null) {
+    await timeout(0);
+
+    // if (mySymbols === null) {
       // todo : make reconnect here??
-      await telegramBot.sendMessage('I am explicitly calling get account info');
-      logger.info('calling the getAccount inside the cycle');
-      mySymbols = await privateAPI.getAccount();
-    }
+    //  await telegramBot.sendMessage('I am explicitly calling get account info');
+    //  logger.info('calling the getAccount inside the cycle');
+    //  mySymbols = await privateAPI.getAccount();
+    //}
 
     var symbol = symbols[i].symbol;
     var limitToSpent = symbols[i].limitToSpent;
@@ -232,7 +245,7 @@ var doBuy = async function (symbol, myQuoteBalance,
         buyAmount: buyAmount, spentAmount: spentAmount, lastClosePrice: lastClosePrice,
         green: nGreen,
       });
-    mySymbols = null; // shame, wss doesn't work good enough
+    // mySymbols = null; // shame, wss doesn't work good enough
     let avg = await privateAPI.placeMarketBuyOrder(symbol, buyAmount, isTestBuyOrder);
     await telegramBot.sendMessage(
       `${symbol}: bought ${buyAmount}, green ${nGreen}, last close price ${lastClosePrice}, order avg price ${avg}`);
@@ -307,7 +320,7 @@ var doSell = async function (symbol, myBaseBalance, myBaseBalanceLocked, symbolI
   if (sellAmount > 0) {
     await telegramBot.sendMessage(
       `I am going to place sell order for ${symbol}, sell amount:${sellAmount}, last close price:${lastClosePrice}`);
-    mySymbols = null; // shame, wss doesn't work good enough
+    // mySymbols = null; // shame, wss doesn't work good enough
     await privateAPI.placeMarketSellOrder(symbol, sellAmount, isTestSellOrder);
     return true;
   }

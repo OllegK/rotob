@@ -5,8 +5,9 @@ const WebSocket = require('./WebSocketClient');
 
 class BinanceWss {
 
-  constructor(listenKey) {
+  constructor(listenKey, eventEmitter) {
     this.listenKey = listenKey;
+    this.eventEmitter = eventEmitter;
   }
 
   start(func) {
@@ -25,7 +26,7 @@ class BinanceWss {
       }
     }); */
 
-    var wsc = new WebSocket();
+    var wsc = new WebSocket(this.eventEmitter);
     wsc.open(`wss://stream.binance.com:9443/ws/${this.listenKey}`);
 
     wsc.onopen = function () {

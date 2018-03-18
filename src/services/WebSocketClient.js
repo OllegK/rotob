@@ -2,9 +2,10 @@
 
 const WebSocket = require('ws');
 
-function WebSocketClient() {
+function WebSocketClient(eventEmitter) {
   this.number = 0;	// Message number
   this.autoReconnectInterval = 1000;	// ms
+  this.eventEmitter = eventEmitter;
 }
 
 WebSocketClient.prototype.open = function (url) {
@@ -44,15 +45,28 @@ WebSocketClient.prototype.open = function (url) {
         break;
     }
   });
-  this.instance.on ('ping', () => {
-  //  this.send('ping');
+  this.instance.on ('doPing', () => {
+    this.pingCount = (this.pingCount || 0) + 1;
+    this.instance.ping((err)=>{
+      if (err) {
+        console.log('Error in ping callback')
+        console.log(err);
+        // todo: should we reconnect here ???
+      }
+    });
   });
-  if (!this.interval) {
+  if (!this.pingInterval) {
     console.log('Setting interval... '); // when to clear interval
-    this.interval = setInterval(() => {
-      this.instance.emit('ping');
+    this.pingInterval = setInterval(() => {
+      this.instance.emit('doPing');
     }, 5000);
   }
+  this.instance.on('pong', ()=> {
+    this.pingCount -= 1;
+    console.log('doing pong', this.pingCount);
+    this.eventEmitter.emit('pongMissing');
+  });
+
 };
 
 WebSocketClient.prototype.send = function (data, option) {
