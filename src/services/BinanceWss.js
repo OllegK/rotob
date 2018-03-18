@@ -29,7 +29,9 @@ class BinanceWss {
     }); */
 
     // this.wsc.close();
-    this.wsc.instance.removeAllListeners();
+    if (this.wsc.instance) { // does it make sense?
+      this.wsc.instance.removeAllListeners();
+    }
 
     this.wsc.onopen = function () {
       console.log('WebSocketClient connected');
