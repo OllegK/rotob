@@ -28,14 +28,14 @@ class BinanceWss {
       }
     }); */
 
-    // this.wsc.prototype.close();
-    this.wsc.prototype.removeAllListeners();
-
-    this.wsc.open(`wss://stream.binance.com:9443/ws/${this.listenKey}`);
+    // this.wsc.close();
+    this.wsc.instance.removeAllListeners();
 
     this.wsc.onopen = function () {
       console.log('WebSocketClient connected');
     };
+
+    this.wsc.open(`wss://stream.binance.com:9443/ws/${this.listenKey}`);
 
     this.wsc.onmessage = function (data, flags, number) {
       // console.log(`WebSocketClient message #${number}: `, data);
