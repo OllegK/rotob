@@ -47,7 +47,7 @@ WebSocketClient.prototype.open = function (url) {
   });
   this.instance.on('doPing', () => {
     this.pingCount = (this.pingCount || 0) + 1;
-    if (this.pingCount > 50) { // todo : configurable
+    if (this.pingCount > 50) { // todo : configurable, when do I reset it
       this.eventEmitter.emit('pongMissing');
     }
     this.instance.ping((err) => {
@@ -66,7 +66,7 @@ WebSocketClient.prototype.open = function (url) {
   }
   this.instance.on('pong', () => {
     this.pingCount -= 1;
-    console.log('doing pong', this.pingCount);
+    // console.log('doing pong', this.pingCount);
   });
 
 };
