@@ -8,12 +8,13 @@
     "start": "node ./src/robot.js",
     "start2": "node ./src/robot.js --ui",
     "start_dev": "npm run lint && node ./src/robot.js",
-    "lint": "eslint --ignore-path .gitignore ./src --ext .js"
+    "lint": "eslint --ignore-path .eslintignore ./src --ext .js"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
     "axios": "^0.17.1",
+    "koa-sslify": "^2.1.2",
     "mongodb": "^3.0.3",
     "winston": "^3.0.0-rc1",
     "ws": "^5.0.0"

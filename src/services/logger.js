@@ -1,6 +1,7 @@
 'use strict';
 
 const { createLogger, format, transports } = require('winston');
+const util = require('util');
 const { combine } = format;
 const fs = require('fs');
 
@@ -46,7 +47,9 @@ var init = function () {
           };
         };
 
-        return `${ts} [${level}]: ${message} ${Object.keys(args).length ? JSON.stringify(args, censor(args), 2) : ''}`;
+        // return `${ts} [${level}]: ${message} ${Object.keys(args).length ? JSON.stringify(args, censor(args), 2) : ''}`;
+        return `${ts} [${level}]: ${message} ${Object.keys(args).length ? util.inspect(args, { showHidden: true, depth: null }) : ''}`;
+
 
       }),
     ),
@@ -60,6 +63,9 @@ var init = function () {
       new transports.File({
         filename: `${logDirectory}/error.log`,
         level: 'error',
+        maxsize: 1024 * 1024 * 20,
+        maxFiles: 999,
+        tailable: true,
       }),
     ],
   });

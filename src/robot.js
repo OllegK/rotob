@@ -12,7 +12,7 @@ const PrivateAPI = require('./services/privateAPI');
 const BinanceWss = require('./services/BinanceWss');
 const BinanceRest = require('./services/BinanceRest');
 const config = require('./config');
-const util = require('./botutil');
+const botutil = require('./botutil');
 
 const events = require('events');
 const eventEmitter = new events.EventEmitter();
@@ -97,8 +97,8 @@ const processWssUpdate = async (msg) => {
 
 const reconnectHandler = async () => {
   console.log('I need to do a needReconnect!');
+  await privateAPI.getAccount();
   let listenKey = await binanceRest.createListenKey();
-  await privateAPI.getAccount()
   await binanceWss.start(listenKey, processWssUpdate);
 };
 const pongMissing = async () => {
@@ -107,7 +107,6 @@ const pongMissing = async () => {
 };
 eventEmitter.on('needReconnect', reconnectHandler);
 eventEmitter.on('pongMissing', pongMissing);
-
 
 var main = async function () {
 
@@ -354,13 +353,14 @@ var runToInitState = async function () {
 
 var start = async function () {
 
-  if (util.startUI()) {
+  if (botutil.startUI()) {
     console.log('starting web');
     require('./web/app');
+    return; // ??
   }
 
   await telegramBot.sendMessage(
-    `I am starting with ${calcValues} values, interval ${interval}ms, version ${util.getVersion()}`);
+    `I am starting with ${calcValues} values, interval ${interval}ms, version ${botutil.getVersion()}`);
   logger.info('Starting .........................');
 
   timeDifference = await publicAPI.getServerTime();
@@ -370,6 +370,7 @@ var start = async function () {
 
   exchangeInfo = await publicAPI.getExchangeInfo();
   logger.info('getExchangeInfo is completed');
+  // logger.error(require('util').inspect(exchangeInfo, { showHidden: true, depth: null }));
 
   if (!await stateManager.initState(stateValidity)) {
     logger.info('I need to init state, as stored state is not valid');

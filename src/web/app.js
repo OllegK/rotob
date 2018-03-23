@@ -1,22 +1,38 @@
 'use strict';
 
+const botutil = require('../botutil');
+
+const fs = require('fs');
+const https = require('https');
 const Koa = require('koa');
 const serve = require('koa-static');
-const app = new Koa();
 const opn = require('opn');
 const router = require('koa-router')();
 const cors = require('koa-cors');
+const enforceHttps = require('koa-sslify');
+
+var app = new Koa();
 
 router.get('/api/test', require('./ROUTES/test'));
 
 app
   .use(cors())
-  .use(serve(__dirname + '../vue/dist'))
+  .use(enforceHttps())
+  .use(serve(__dirname + '/vue/dist'))
   .use(router.routes())
   .use(router.allowedMethods());
 
-app.listen(3000);
-console.log('The app is listening. Port 3000');
-opn('http://localhost:3000');
+const port = process.env.HTTP_PORT || 3000;
 
+const options = {
+  key: fs.readFileSync('./src/web/ssl/node-selfsigned.key', 'utf8'),
+  cert: fs.readFileSync('./src/web/ssl/node-selfsigned.crt', 'utf8'),
+};
 
+var address = botutil.getIpAddress();
+
+https.createServer(options, app.callback()).listen(port, address);
+// app.listen(port, address);
+
+console.log(`The app is listening. Address ${address}. Port ${port}`);
+// opn(`https://${address}:${port}`);
