@@ -356,7 +356,7 @@ var start = async function () {
   if (botutil.startUI()) {
     console.log('starting web');
     require('./web/app');
-    return; // ??
+    // return; // ??
   }
 
   await telegramBot.sendMessage(

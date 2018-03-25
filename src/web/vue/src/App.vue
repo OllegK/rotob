@@ -15,7 +15,7 @@
       app
     >
       <v-list dense>
-       <v-list-tile router-link to="/">
+       <v-list-tile router-link to="/status">
           <v-list-tile-action>
             <v-icon>dashboard</v-icon>
           </v-list-tile-action>

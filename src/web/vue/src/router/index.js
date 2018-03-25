@@ -4,13 +4,20 @@ import Status from '@/components/Status'
 import Config from '@/components/Config'
 import State from '@/components/State'
 import Symbols from '@/components/Symbols'
+import Signin from '@/components/Signin'
+import * as auth from '@/shared/auth'
 
 Vue.use(Router)
 
-export default new Router({
+const router = new Router({
   routes: [
     {
-      path: '/',
+      path: '/login',
+      name: 'Signin',
+      component: Signin
+    },
+    {
+      path: '/status',
       name: 'Status',
       component: Status
     },
@@ -28,6 +35,24 @@ export default new Router({
       path: '/symbols',
       name: 'Symbols',
       component: Symbols
+    },
+    {
+      path: '*',
+      redirect: '/state'
     }
   ]
 })
+
+router.beforeEach((to, from, next) => {
+  if (to.path !== '/login') {
+    if (auth.default.user.authenticated) {
+      next()
+    } else {
+      router.push('/login')
+    }
+  } else {
+    next()
+  }
+})
+
+export default router

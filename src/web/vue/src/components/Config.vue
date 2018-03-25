@@ -18,9 +18,6 @@ export default {
     getConfig () {
 
     }
-  },
-  beforeMount () {
-    console.log('before mount')
   }
 }
 </script>

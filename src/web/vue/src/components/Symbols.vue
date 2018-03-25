@@ -1,7 +1,7 @@
 <template>
   <div>
     <h1>{{ msg }}</h1>
-    <v-btn color="blue" v-on:click.native="clickButton()">Success</v-btn>
+    <v-btn color="blue" v-on:click.native="updateSymbols()">Update</v-btn>
 
   </div>
 </template>
@@ -17,11 +17,13 @@ export default {
     }
   },
   methods: {
-    async clickButton () {
-      console.log('clicking the button')
-      let response = await axios.get('http://localhost:3000/api/test')
-      console.log(response.data)
+    async updateSymbols () {
     }
+  },
+  beforeMount: async () => {
+    console.log(this)
+    let response = await axios.get('/api/symbols')
+    console.log(response.data)
   }
 }
 </script>
