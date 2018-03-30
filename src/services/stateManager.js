@@ -2,6 +2,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const botutil = require('../botutil');
 
 class StateManager {
 
@@ -25,7 +26,7 @@ class StateManager {
       let db = client.db(client.s.options.dbName);
       db.createCollection('state');
       this.collection = db.collection('state');
-      var arr = await this.collection.find({state: 'robotState'}).toArray();
+      var arr = await this.collection.find({state: 'robotState', osuser: botutil.getOsUserName()}).toArray();
       if (arr.length === 1) {
         this.state = arr[0];
         console.log(JSON.stringify(this.state));

@@ -17,7 +17,7 @@ var botutil = {
   },
   startUI: () => process.argv.includes('--ui'),
   getStartTime: () => startTime,
-  getUserName: () => os.userInfo().username,
+  getOsUserName: () => os.userInfo().username,
   getIpAddress: () => {
     var ifaces = os.networkInterfaces();
     var address;
