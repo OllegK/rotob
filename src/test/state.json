@@ -1,0 +1,49 @@
+{
+  "timestamp": 1521818181731,
+  "state": "robotState",
+  "osuser": "olegk",
+  "BTCUSDT": {
+      "signal": "SELL",
+      "timestamp": 1521810010234,
+      "green": "8396.25000000"
+  },
+  "ETHUSDT": {
+      "ORDER_BUY": 1520074812880,
+      "ORDER_BUY_QTY": "0.02894000",
+      "ORDER_BUY_ID": 39894570,
+      "ORDER_BUY_AVG": 863.99,
+      "signal": "SELL",
+      "timestamp": 1521817166767,
+      "green": "518.62500000"
+  },
+  "BCCUSDT": {
+      "ORDER_BUY": 1520046016340,
+      "ORDER_BUY_QTY": "0.01932000",
+      "ORDER_BUY_ID": 11099801,
+      "ORDER_BUY_AVG": 1293.6951086956522,
+      "ORDER_SELL": 1520040012625,
+      "ORDER_SELL_QTY": 0.00001,
+      "ORDER_SELL_ID": 11091741
+  },
+  "NEOUSDT": {
+      "ORDER_BUY": 1520075690413,
+      "ORDER_BUY_QTY": "0.19700000",
+      "ORDER_BUY_ID": 16553733,
+      "ORDER_BUY_AVG": 126.43000000000002,
+      "ORDER_SELL": 1520074385625,
+      "ORDER_SELL_QTY": 0.2,
+      "ORDER_SELL_ID": 16547875,
+      "signal": "SELL",
+      "timestamp": 1521818063645,
+      "green": "65.76050000"
+  },
+  "LTCUSDT": {
+      "ORDER_BUY": 1520076630144,
+      "ORDER_BUY_QTY": "0.14021000",
+      "ORDER_BUY_ID": 14617650,
+      "ORDER_BUY_AVG": 213.95,
+      "signal": "SELL",
+      "timestamp": 1521818132103,
+      "green": "159.69000000"
+  }
+}
