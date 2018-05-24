@@ -107,23 +107,22 @@ State is saved into ./state.json
 2. Bugfixing
 
 # Future possible improvements
-0) Moveable stop-loss (Denis' zagogulina, crossing the falling candle).
+0) Moveable stop-loss (Dan' zagogulina, crossing the falling candle).
 0) Analyze the amount of signals during the period (24h), and don't buy if it is гармошка.
 1) Diversification and full investment of the available deposit (find all possible pairs and split deposit between them).
 2) Bot asks if coin should be sold/bought.
-3) (можно позже прикрутить) чтобы если он на одной паре делает покупки продажи часто, например каждый час, если мы на часовике, то покупки по этой паре на какое-то время игнорирует
-4) Notification flag on the pair
-5) Sell indicator not by just the values, but by crossing the values as it is done for buy signal (??)
-6) {code: -2010, msg: "Account has insufficient balance for request action"} - now it is just applied 0.95 to balance
-7) Take into the account the exchange fee calculating the price of stop loss
-8) crossing could happen when both indicators are in down trend (rarely)
-9) https://api.binance.com/wapi/v3/systemStatus.html
-10) Have the acceptable errors for REST calling
-11) Write LOG file for each pair
-12) Check the status of pair in getExchangeInfo - TRADING OR NOT? Invalidate Exchange Info
-13) no trades on weekend?
-14) if there is a balance, robot never buys?
-15) DON'T SELL IF NOT BOUGHT - CHECK QUANTITY
-16) WSS to learn that cancel order is processed
-17) moving order what happens when moved order is partially fillled and doesn't meet MIN_NOTION condition
-18) Provide the invalidate procedure when intervals are changed in parameters
+3) Notification flag on the pair
+4) Sell indicator not by just the values, but by crossing the values as it is done for buy signal (??)
+5) {code: -2010, msg: "Account has insufficient balance for request action"} - now it is just applied 0.95 to balance
+6) Take into the account the exchange fee calculating the price of stop loss
+7) crossing could happen when both indicators are in down trend (rarely)
+8) https://api.binance.com/wapi/v3/systemStatus.html
+9) Have the acceptable errors for REST calling
+10) Write LOG file for each pair
+11) Check the status of pair in getExchangeInfo - TRADING OR NOT? Invalidate Exchange Info
+12) no trades on weekend?
+13) if there is a balance, robot never buys?
+14) Do not sell if not bought
+15) WSS to learn that cancel order is processed
+16) moving order what happens when moved order is partially fillled and doesn't meet MIN_NOTION condition
+17) Provide the invalidate procedure when intervals are changed in parameters
