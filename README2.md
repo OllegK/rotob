@@ -13,14 +13,6 @@ Unpack the archive to some folder and navigate to desination folder
 Update .env file
 1) You can keep the same bot id, or create your own bot
 2) Update the CHAT_ID value. 
-
-To find your own CHAT_ID, send a message to Traduzir_bot, and navigate to [https://api.telegram.org/bot437516306:AAEusnPwYEWnBWPmHyhiSN3tuOcuThG_4fQ/getUpdates]
-
-Current value of chat id is my contact, so don't run it with that value.
-
-Our chat id  -314588186
-My contact    384438001
-
 3) API_KEY and API_SECRET_KEY - should be changed, current values are mine, don't run with them; otherwise you can destroy my balance :)
 
 ## Download the needed modules
